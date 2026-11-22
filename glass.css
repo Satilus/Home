@@ -1,0 +1,102 @@
+/* «Тю і Шо» — стиль iOS 27 (Liquid Glass): скляні поверхні з розмиттям і відблисками,
+   плаваюча панель вкладок-капсула, скляні кнопки. Підключається останнім у <head> кожної сторінки. */
+:root{
+  --glass:rgba(255,255,255,.58);
+  --glass-strong:rgba(255,255,255,.78);
+  --glass-edge:rgba(255,255,255,.75);
+  --glass-hi:rgba(255,255,255,.9);
+  --glass-lo:rgba(255,255,255,.25);
+  --glass-shadow:0 8px 28px rgba(20,20,40,.10),0 1px 2px rgba(20,20,40,.06);
+  --blur:blur(22px) saturate(185%);
+  --r-card:22px;
+  --bg:#EEF0F6;
+}
+@media (prefers-color-scheme:dark){:root{
+  --glass:rgba(44,44,50,.52);
+  --glass-strong:rgba(48,48,56,.78);
+  --glass-edge:rgba(255,255,255,.14);
+  --glass-hi:rgba(255,255,255,.22);
+  --glass-lo:rgba(255,255,255,.05);
+  --glass-shadow:0 10px 30px rgba(0,0,0,.45);
+  --bg:#050507;
+}}
+
+/* м'який кольоровий фон, крізь який видно скло */
+body{background:var(--bg)}
+body::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(38% 30% at 12% 8%, rgba(255,92,72,.30), transparent 70%),
+    radial-gradient(34% 28% at 92% 22%, rgba(140,110,255,.26), transparent 70%),
+    radial-gradient(40% 32% at 70% 88%, rgba(255,170,60,.22), transparent 70%),
+    radial-gradient(30% 26% at 8% 70%, rgba(60,180,255,.18), transparent 70%);
+  filter:blur(10px)}
+@media (prefers-color-scheme:dark){body::before{opacity:.75}}
+
+/* базовий рецепт скла */
+.quote,.stats,.pick,.empty,.box,.stat,
+.seg,.pills button,.iconbtn,.syncbtn,.field,.big.back,.chip,.toast,.tabbar nav{
+  background:var(--glass)!important;
+  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  border:.5px solid var(--glass-edge)!important;
+  box-shadow:inset 0 1px 0 var(--glass-hi),inset 0 -1px 0 var(--glass-lo),var(--glass-shadow)}
+.quote,.stats,.pick,.empty,.box{border-radius:var(--r-card)!important}
+
+/* круглі скляні кнопки в заголовку */
+header .iconbtn,header .syncbtn{width:44px;height:44px;border-radius:50%!important;margin-left:6px}
+header > div:last-child{display:flex;align-items:center}
+
+/* сегментований перемикач: скляна капсула з «краплею» вибору */
+.seg{border-radius:999px!important;padding:4px!important}
+.seg button{border-radius:999px!important;transition:background .25s,color .25s,transform .2s}
+.seg button[aria-pressed=true]{background:var(--glass-strong)!important;box-shadow:inset 0 1px 0 var(--glass-hi),0 4px 14px rgba(0,0,0,.12)!important}
+.seg button:active{transform:scale(.96)}
+#types{border-radius:26px!important}
+#types button{border-radius:22px!important}
+
+/* фільтри-капсули */
+.pills button{border-radius:999px!important;transition:transform .15s}
+.pills button[aria-pressed=true]{background:var(--ink)!important;color:var(--bg);border-color:transparent!important}
+.pills button:active{transform:scale(.95)}
+
+/* постери */
+.poster{border-radius:16px!important}
+
+/* плаваюча панель вкладок */
+.tabbar{background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;
+  left:50%!important;right:auto!important;transform:translateX(-50%);width:min(320px,calc(100% - 40px));
+  bottom:calc(10px + env(safe-area-inset-bottom))!important;padding:0!important}
+.tabbar nav{border-radius:999px;padding:5px;gap:4px}
+.tabbar a{border-radius:999px;min-height:52px!important;transition:background .25s,color .25s}
+.tabbar a[aria-current=page]{background:var(--glass-strong);box-shadow:inset 0 1px 0 var(--glass-hi),0 3px 10px rgba(0,0,0,.10)}
+.wrap{padding-bottom:calc(120px + env(safe-area-inset-bottom))!important}
+.toast{bottom:calc(84px + env(safe-area-inset-bottom))!important;border-radius:20px!important;color:var(--ink)!important}
+.toast button{background:var(--glass-strong)!important;color:var(--tint)!important;border-radius:999px!important}
+
+/* аркуш (картка фільму, налаштування): скляний і «плаваючий» */
+.sheet,.syncov .sh{background:var(--glass-strong)!important;-webkit-backdrop-filter:blur(30px) saturate(190%);backdrop-filter:blur(30px) saturate(190%);
+  border:.5px solid var(--glass-edge);box-shadow:inset 0 1px 0 var(--glass-hi),0 -10px 40px rgba(0,0,0,.18);
+  border-radius:34px 34px 0 0!important}
+@media (min-width:700px){.sheet,.syncov .sh{border-radius:34px!important;margin-bottom:16px}}
+.backdrop,.syncov .bg{background:rgba(0,0,0,.28)!important}
+.sheet .box,.syncov .bx{background:var(--glass)!important;border:.5px solid var(--glass-edge);border-radius:20px!important}
+
+/* великі кнопки — капсули */
+.big,.btn,.syncov .b{border-radius:999px!important}
+.big.go,.btn.go,.syncov .b.go{box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 18px color-mix(in srgb,currentColor 0%,rgba(0,0,0,.18))}
+.btn{background:var(--glass)!important;border:.5px solid var(--glass-edge)!important}
+.btn.go{background:var(--tint)!important;border:0!important}
+
+/* кнопки на постерах */
+.check,.add{-webkit-backdrop-filter:blur(14px) saturate(180%);backdrop-filter:blur(14px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 2px 8px rgba(0,0,0,.25)}
+
+/* доступність: менше прозорості — суцільні поверхні */
+@media (prefers-reduced-transparency:reduce){
+  .quote,.stats,.pick,.empty,.box,.stat,.seg,.pills button,.iconbtn,.syncbtn,.field,.big.back,.chip,.toast,.tabbar nav,.sheet,.syncov .sh{
+    background:var(--card)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  body::before{display:none}
+}
+
+/* фільтри статусу — в один рядок */
+.pills{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;gap:6px!important}
+.pills::-webkit-scrollbar{display:none}
+.pills button{flex:none;padding:0 12px!important;white-space:nowrap}
