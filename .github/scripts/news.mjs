@@ -5,25 +5,24 @@ import fs from 'node:fs';
 
 const UA = 'Mozilla/5.0 (compatible; TyuiShoNewsBot/1.0; +https://satilus.github.io/Home/)';
 const SOURCES = [
-  // Лише українськомовні видання; загальні стрічки фільтруються за кіно-словами в заголовку
+  // Лише українськомовні видання. kino: true — розділ про кіно/шоубіз (беремо все, крім явно некіношного)
+  { lang: 'uk', name: '24 Канал Кіно', url: 'https://kino.24tv.ua/rss/all.xml', kino: true },
+  { lang: 'uk', name: 'УНІАН Lite', url: 'https://rss.unian.net/site/lite_ukr.rss', filter: true },
+  { lang: 'uk', name: 'РБК-Україна Стайлер', url: 'https://www.rbc.ua/static/rss/styler.ukr.rss.xml', filter: true },
+  { lang: 'uk', name: 'ТСН Гламур', url: 'https://tsn.ua/rss/glamur.rss', filter: true },
+  { lang: 'uk', name: 'НВ Життя', url: 'https://nv.ua/ukr/rss/life.xml', filter: true },
+  { lang: 'uk', name: 'Главред Кіно', url: 'https://glavred.net/rss/movies', filter: true },
   { lang: 'uk', name: 'Укрінформ', url: 'https://www.ukrinform.ua/rss/rubric-culture', filter: true },
-  { lang: 'uk', name: 'Укрінформ', url: 'https://www.ukrinform.ua/rss/block-lastnews', filter: true },
   { lang: 'uk', name: 'Детектор медіа', url: 'https://detector.media/rss/', filter: true },
   { lang: 'uk', name: 'Українська правда. Життя', url: 'https://life.pravda.com.ua/rss/', filter: true },
-  { lang: 'uk', name: 'Українська правда', url: 'https://www.pravda.com.ua/rss/', filter: true },
   { lang: 'uk', name: 'ТСН', url: 'https://tsn.ua/rss/full.rss', filter: true },
   { lang: 'uk', name: 'УНІАН', url: 'https://rss.unian.net/site/news_ukr.rss', filter: true },
   { lang: 'uk', name: 'РБК-Україна', url: 'https://www.rbc.ua/static/rss/all.ukr.rss.xml', filter: true },
   { lang: 'uk', name: 'НВ', url: 'https://nv.ua/ukr/rss/all.xml', filter: true },
   { lang: 'uk', name: '24 Канал', url: 'https://24tv.ua/rss/all.xml', filter: true },
   { lang: 'uk', name: 'Главред', url: 'https://glavred.net/rss', filter: true },
-  { lang: 'uk', name: 'Обозреватель', url: 'https://www.obozrevatel.com/ukr/rss.xml', filter: true },
   { lang: 'uk', name: 'ZAXID.NET', url: 'https://zaxid.net/rss/all.xml', filter: true },
-  { lang: 'uk', name: 'LB.ua', url: 'https://lb.ua/rss/ukr/news.xml', filter: true },
   { lang: 'uk', name: 'Радіо Свобода', url: 'https://www.radiosvoboda.org/api/zrqiteuuir', filter: true },
-  { lang: 'uk', name: 'Еспресо', url: 'https://espreso.tv/rss', filter: true },
-  { lang: 'uk', name: 'Фокус', url: 'https://focus.ua/uk/rss', filter: true },
-  { lang: 'uk', name: 'Новини.LIVE', url: 'https://novyny.live/rss', filter: true },
 ];
 // слово має починатися з цих основ (щоб «редактор» не ловився як «актор»)
 const KINO = /(?<!\p{L})(кіно(?!а)|фільм|серіал|кінопрем|трейлер|режисер|актор|акторк|мультфільм|мультсеріал|аніме|оскар|берлінале|netflix|кінофестивал|кінотеатр|голлівуд|кастинг)/iu;
@@ -70,8 +69,10 @@ for (const s of SOURCES) {
     let items = s.gdelt ? await gdelt(s) : parseRss(await get(s.url), s);
     const n0 = items.length;
     if (s.filter) items = items.filter(x => KINO.test(x.title) && !NOT_KINO.test(x.title));
+    if (s.kino) items = items.filter(x => !NOT_KINO.test(x.title));
+    const n1 = items.length, sample = items[0] ? items[0].url : '';
     items = items.filter(x => !RUSSIAN.test(x.title) && !BAD_DOMAIN.test(x.url) && /^https:\/\//.test(x.url));
-    report.push(`✓ ${s.name}: ${n0} → ${items.length}`); all = all.concat(items.slice(0, 20));
+    report.push(`✓ ${s.name}: ${n0} → кіно ${n1} → ${items.length}${n1 && !items.length ? ' (відсіяно, напр. ' + sample.slice(0, 60) + ')' : ''}`); all = all.concat(items.slice(0, 20));
   } catch (e) { report.push(`✗ ${s.name}: ${e.message}`); }
   await sleep(300);
 }
