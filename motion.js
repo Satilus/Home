@@ -72,9 +72,8 @@
       const g = e.target.closest(GROUPS); if (!g || e.button > 0) return;
       const items = [...g.querySelectorAll(ITEM)].filter(x => !x.classList.contains('seg-ind'));
       if (items.length < 2) return;
-      drag = { g, items, x0: e.clientX, lastX: e.clientX, lastT: performance.now(), v: 0, moved: false, id: e.pointerId, under: null };
-      g.classList.add('lensing');
-      moveLens(e.clientX);
+      /* лінза вмикається лише коли палець справді веде вбік — дотик і вертикальне прокручування її не чіпають */
+      drag = { g, items, x0: e.clientX, y0: e.clientY, lastX: e.clientX, lastT: performance.now(), v: 0, moved: false, active: false, id: e.pointerId, under: null };
     });
     function nearest(d, cx) {
       let best = d.items[0], bd = Infinity;
@@ -94,7 +93,12 @@
       const d = drag; if (!d || e.pointerId !== d.id) return;
       const now = performance.now(), dt = Math.max(1, now - d.lastT);
       d.v = d.v * 0.6 + ((e.clientX - d.lastX) / dt) * 0.4; d.lastX = e.clientX; d.lastT = now;
-      if (Math.abs(e.clientX - d.x0) > 6) d.moved = true;
+      const ax = Math.abs(e.clientX - d.x0), ay = Math.abs(e.clientY - d.y0);
+      if (!d.active) {
+        if (ay > 8 && ay > ax) { drag = null; return; }
+        if (ax < 10) return;
+        d.active = true; d.moved = true; d.g.classList.add('lensing');
+      }
       moveLens(e.clientX);
     });
     function endDrag(e, cancel) {
@@ -102,6 +106,7 @@
       if (d.under) d.under.classList.remove('lens-under');
       const target = !cancel && d.moved ? nearest(d, d.lastX) : null;
       const g = d.g;
+      if (!d.active) return;
       requestAnimationFrame(() => { g.classList.remove('lensing'); placeInd(g); });
       if (target) {
         pending = target;

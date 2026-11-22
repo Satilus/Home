@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="theme-color" content="#E0261C">
-<script src="shared.js?v=10"></script>
+<script src="shared.js?v=11"></script>
 <style>
 :root{color-scheme:light dark;
   --bg:#F2F2F7;--card:#FFFFFF;--ink:#000;--ink2:#3A3A3C;--muted:#6C6C70;--sep:#D1D1D6;--seg:#E3E3E8;--segOn:#FFFFFF;--fill:#EFEFF4;
@@ -73,8 +73,8 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .sheet.full{height:calc(100vh - 10px - env(safe-area-inset-top));height:calc(100dvh - 10px - env(safe-area-inset-top));max-height:none;
   background:color-mix(in srgb,var(--sheet) 38%,transparent)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border-color:rgba(255,255,255,.18)!important}
 .ov-bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:radial-gradient(120% 80% at 30% 10%,var(--fb),transparent 70%),var(--bg);animation:ovIn .45s ease both}
-.ov-bg img{position:absolute;inset:-10%;width:120%;height:120%;object-fit:cover;filter:blur(48px) saturate(1.7);transform:scale(1.2) translateZ(0);opacity:0;transition:opacity .5s ease}
-.ov-bg img.ok{opacity:.9}
+.ov-bg canvas{position:absolute;inset:-6%;width:112%;height:112%;opacity:0;transition:opacity .4s ease;transform:translateZ(0)}
+.ov-bg canvas.ok{opacity:.95}
 .ov-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),color-mix(in srgb,var(--bg) 45%,transparent) 70%)}
 @keyframes ovIn{from{opacity:0}}
 .overlay > .sheet{z-index:1}
@@ -181,8 +181,8 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .lb .cnt{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;font-size:13px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
-<link rel="stylesheet" href="glass.css?v=10">
-<script src="motion.js?v=10" defer></script>
+<link rel="stylesheet" href="glass.css?v=11">
+<script src="motion.js?v=11" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -675,7 +675,7 @@ async function loadExtras(it){
   return res;
 }
 function extrasHTML(x){
-  if (!x) return '<div class="box"><h3>Кадри та актори</h3><p class="hint">Завантажую…</p></div>';
+  if (!x) return '<div class="box" style="min-height:120px"><h3>Кадри та актори</h3><p class="hint">Завантажую…</p></div>';
   let h = '';
   if (x.shots.length) h += `<div><div class="lbl" style="padding:0 4px 8px">Кадри</div><div class="shots">${x.shots.map((sh, i) => `<button data-shot="${i}" aria-label="Кадр ${i+1}"><img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(sh.thumb)}" onload="if(this.naturalWidth&&this.naturalWidth<200)this.parentNode.remove()" onerror="this.parentNode.remove()"></button>`).join('')}</div></div>`;
   else if (x.note) h += `<p class="hint" style="padding:0 4px;margin:0">${esc(x.note)}</p>`;
@@ -779,7 +779,14 @@ function setPosterBg(src, fallback){
   bg.style.setProperty('--fb', fallback || '#555');
   if (bg.dataset.src === (src || '')) return;
   bg.dataset.src = src || '';
-  bg.innerHTML = src ? `<img alt="" referrerpolicy="no-referrer" src="${esc(src)}" onload="this.classList.add('ok')" onerror="this.remove()">` : '';
+  bg.innerHTML = '';
+  if (!src) return;
+  /* дешеве «розмиття»: постер зменшується до 36×54 і розтягується на весь екран */
+  const im = new Image(); im.referrerPolicy = 'no-referrer';
+  im.onload = () => { if (bg.dataset.src !== src) return; const c = document.createElement('canvas'); c.width = 36; c.height = 54;
+    try { const x = c.getContext('2d'); x.filter = 'blur(2px)'; x.drawImage(im, -2, -2, 40, 58); } catch(e) { return; }
+    bg.appendChild(c); requestAnimationFrame(() => c.classList.add('ok')); };
+  im.src = src;
 }
 const clearPosterBg = () => { const bg = document.getElementById('ovBgImg'); if (bg) bg.remove(); };
 
@@ -811,6 +818,7 @@ function openSheet(id){
   const total = it.total || m.episodes;
   const metaLine = [yearOf(it.year), m.genres, total ? total + ' серій' : ''].filter(Boolean).join(' · ');
   const back = it.prev && it.prev !== 'watched' ? it.prev : 'planned';
+  const keepScroll = !$('#ov').hidden && $('#ov').dataset.id === id ? $('#sheet').scrollTop : 0;
   $('#sheet').setAttribute('aria-label', it.title);
   const psrc = (meta[id] || {}).poster || '';
   $('#sheet').style.removeProperty('--acc');
@@ -828,8 +836,6 @@ function openSheet(id){
       </div>
     </div>
     <div class="box"><h3>Короткий зміст</h3><p>${esc(overview)}</p></div>
-    <div id="extras">${extrasHTML(extrasCache[id] && (extrasCache[id].shots.length || extrasCache[id].cast.length) ? extrasCache[id] : null)}</div>
-    <div id="more" class="more">${moreHTML(it, moreCache[id])}</div>
     <div class="box" style="display:flex;flex-direction:column;gap:10px">
       ${it.status === 'watched' ? `<h3 style="margin:0">Мій рейтинг${it.pep === 5 ? ' · вогонь!' : it.pep ? ' · ' + it.pep + ' з 5' : ''}</h3>
       <div class="pep" role="group" aria-label="Мій рейтинг у перчиках">${[1,2,3,4,5].map(n => `<button data-pep="${n}" class="${(it.pep||0) >= n ? 'on' : ''}" aria-pressed="${it.pep===n}" aria-label="${n === 5 ? 'Вогонь — максимум' : n + ' з 5 перчиків'}">${n === 5 ? '🔥' : '🌶️'}</button>`).join('')}</div>
@@ -839,8 +845,12 @@ function openSheet(id){
     <div><div class="lbl" style="padding:0 4px 8px">Статус</div>
       <div class="seg" role="group" aria-label="Статус" style="max-width:none">${['watching','planned','watched'].map(k => `<button aria-pressed="${it.status===k}" data-set="${k}">${LABEL[k]}</button>`).join('')}</div></div>
     ${it.status === 'watched' ? `<button class="big back" data-unwatch>Повернути в «${LABEL[back]}»</button>` : `<button class="big go" data-watch>✓ Позначити переглянутим</button>`}
+    <div id="extras">${extrasHTML(extrasCache[id] && (extrasCache[id].shots.length || extrasCache[id].cast.length) ? extrasCache[id] : null)}</div>
+    <div id="more" class="more">${moreHTML(it, moreCache[id])}</div>
     <button class="big del" data-refresh>Оновити дані з інтернету</button>
     <button class="big del" data-remove style="color:var(--tint)">Видалити зі списку</button>`;
+  $('#sheet').querySelectorAll('img').forEach(i => { if (i.complete && i.naturalWidth) i.classList.add('ok'); });
+  if (keepScroll) $('#sheet').scrollTop = keepScroll;
   $('#ov').dataset.id = id; $('#ov').hidden = false;
   if (!meta[id]) want(it);
   loadExtras(it).then(x => { if ($('#ov').dataset.id === id && $('#extras')) $('#extras').innerHTML = extrasHTML(x); });
@@ -855,7 +865,10 @@ $('#sheet').addEventListener('click', async e => {
   const id = $('#ov').dataset.id, it = items.find(i => i.id === id);
   if (b.dataset.close !== undefined) closeSheet();
   else if (b.dataset.set) { if (it && it.status !== b.dataset.set) setStatus(id, b.dataset.set); }
-  else if (b.dataset.pep && it) { const n = Number(b.dataset.pep); it.pep = it.pep === n ? 0 : n; save(); render(); openSheet(id); }
+  else if (b.dataset.pep && it) { const n = Number(b.dataset.pep); it.pep = it.pep === n ? 0 : n; save();
+    b.parentNode.querySelectorAll('button').forEach(x => { const k = Number(x.dataset.pep); x.classList.toggle('on', (it.pep || 0) >= k); x.setAttribute('aria-pressed', it.pep === k); });
+    const h = b.closest('.box').querySelector('h3'); if (h) h.textContent = 'Мій рейтинг' + (it.pep === 5 ? ' · вогонь!' : it.pep ? ' · ' + it.pep + ' з 5' : '');
+    document.querySelectorAll(`[data-r="${CSS.escape(id)}"]`).forEach(el => { el.innerHTML = STAR + esc(ratingOf(it).v) + (it.pep ? `<span class="mine" title="Мій рейтинг"><span class="peps">${'🌶️'.repeat(Math.min(it.pep, 4)) + (it.pep === 5 ? '🔥' : '')}</span></span>` : ''); }); }
   else if (b.dataset.watch !== undefined) setStatus(id, 'watched');
   else if (b.dataset.unwatch !== undefined) unwatch(id);
   else if (b.dataset.ep && it) { const total = it.total || (meta[id]||{}).episodes; const n = Math.max(0, (it.ep||0) + Number(b.dataset.ep)); if (total && n >= total) { it.total = total; setStatus(id, 'watched', total); } else setStatus(id, 'watching', n); }
