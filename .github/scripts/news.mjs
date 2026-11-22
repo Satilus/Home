@@ -76,7 +76,7 @@ for (const s of SOURCES) {
 // додати новини з попереднього запуску (останні 7 днів), щоб стрічка накопичувалась
 try {
   const prev = JSON.parse(await get('https://raw.githubusercontent.com/Satilus/Home/news-data/news.json?t=' + Date.now()));
-  const keep = (prev.items || []).filter(x => x.lang === 'uk' && x.date && Date.now() - new Date(x.date) < 7 * 864e5 && !RUSSIAN.test(x.title) && !BAD_DOMAIN.test(x.url));
+  const keep = (prev.items || []).filter(x => x.lang === 'uk' && x.date && Date.now() - new Date(x.date) < 7 * 864e5 && KINO.test(x.title) && !NOT_KINO.test(x.title) && !RUSSIAN.test(x.title) && !BAD_DOMAIN.test(x.url));
   report.push(`↺ з попереднього запуску: ${keep.length}`); all = all.concat(keep);
 } catch (e) { report.push('↺ попередня стрічка недоступна'); }
 // прибрати дублікати за посиланням і схожими заголовками
