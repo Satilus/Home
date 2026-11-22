@@ -5,25 +5,30 @@ import fs from 'node:fs';
 
 const UA = 'Mozilla/5.0 (compatible; TyuiShoNewsBot/1.0; +https://satilus.github.io/Home/)';
 const SOURCES = [
-  // Україна (загальні культурні стрічки фільтруються за кіно-словами)
+  // Україна (загальні стрічки фільтруються за кіно-словами)
   { lang: 'uk', name: 'Укрінформ', url: 'https://www.ukrinform.ua/rss/rubric-culture', filter: true },
-  { lang: 'uk', name: 'Суспільне Культура', url: 'https://suspilne.media/culture/rss/all.rss', filter: true },
   { lang: 'uk', name: 'Детектор медіа', url: 'https://detector.media/rss/', filter: true },
+  { lang: 'uk', name: 'Українська правда. Життя', url: 'https://life.pravda.com.ua/rss/', filter: true },
+  { lang: 'uk', name: 'ТСН', url: 'https://tsn.ua/rss/full.rss', filter: true },
+  { lang: 'uk', name: 'УНІАН', url: 'https://rss.unian.net/site/news_ukr.rss', filter: true },
+  { lang: 'uk', name: 'РБК-Україна', url: 'https://www.rbc.ua/static/rss/all.ukr.rss.xml', filter: true },
+  { lang: 'uk', name: 'Gazeta.ua', url: 'https://gazeta.ua/rss', filter: true },
+  { lang: 'uk', name: 'НВ', url: 'https://nv.ua/ukr/rss/all.xml', filter: true },
+  { lang: 'uk', name: 'Суспільне', url: 'https://suspilne.media/rss/all.rss', filter: true },
   { lang: 'uk', name: 'Межа', url: 'https://mezha.ua/feed/', filter: true },
-  { lang: 'uk', name: 'Новини.LIVE', url: 'https://novyny.live/kino-ta-seriali/feed', filter: true },
-  { lang: 'uk', name: 'Кіно-Театр', url: 'https://kino-teatr.ua/rss/news.rss', filter: true },
-  { lang: 'uk', name: 'GDELT', gdelt: '(фільм OR серіал OR кінопрем\'єра OR трейлер OR режисер) sourcelang:ukrainian' },
   // Світ
   { lang: 'en', name: 'Variety', url: 'https://variety.com/v/film/feed/' },
-  { lang: 'en', name: 'Deadline', url: 'https://deadline.com/category/film/feed/' },
+  { lang: 'en', name: 'Deadline', url: 'https://deadline.com/v/film/feed/' },
   { lang: 'en', name: 'The Hollywood Reporter', url: 'https://www.hollywoodreporter.com/c/movies/movie-news/feed/' },
   { lang: 'en', name: 'IndieWire', url: 'https://www.indiewire.com/c/film/feed/' },
   { lang: 'en', name: 'Screen Rant', url: 'https://screenrant.com/feed/movie-news/' },
   { lang: 'en', name: 'Collider', url: 'https://collider.com/feed/category/movie-news/' },
 ];
-const KINO = /кіно|фільм|серіал|прем['’ʼ]?єр|трейлер|режисер|актор|акторк|мультфільм|аніме|оскар|канн|берлінале|netflix|кінофестивал|кінотеатр|прокат|сезон/i;
+// слово має починатися з цих основ (щоб «редактор» не ловився як «актор»)
+const KINO = /(?<!\p{L})(кіно|фільм|серіал|кінопрем|трейлер|режисер|актор|акторк|мультфільм|мультсеріал|аніме|оскар|берлінале|netflix|кінофестивал|кінотеатр|голлівуд|кастинг)/iu;
+const NOT_KINO = /(?<!\p{L})(вистав|театр|концерт|альбом|пісн|виставк|книжк|роман\b)/iu;
 const RUSSIAN = /[ыэъё]/i;                      // російськомовні заголовки
-const BAD_DOMAIN = /\.(ru|by)(\/|$)|rbc\.|ria\.|tass\./i;
+const BAD_DOMAIN = /^https?:\/\/[^/]*\.(ru|by)(\/|$)/i;
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function get(url, ms = 12000) {
@@ -63,7 +68,7 @@ for (const s of SOURCES) {
   try {
     let items = s.gdelt ? await gdelt(s) : parseRss(await get(s.url), s);
     const n0 = items.length;
-    if (s.filter) items = items.filter(x => KINO.test(x.title + ' ' + x.sum));
+    if (s.filter) items = items.filter(x => KINO.test(x.title) || (KINO.test(x.sum) && !NOT_KINO.test(x.title)));
     items = items.filter(x => !RUSSIAN.test(x.title) && !BAD_DOMAIN.test(x.url) && /^https:\/\//.test(x.url));
     report.push(`✓ ${s.name}: ${n0} → ${items.length}`); all = all.concat(items.slice(0, 25));
   } catch (e) { report.push(`✗ ${s.name}: ${e.message}`); }
