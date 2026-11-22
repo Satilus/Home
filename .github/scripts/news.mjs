@@ -6,12 +6,8 @@ import fs from 'node:fs';
 const UA = 'Mozilla/5.0 (compatible; TyuiShoNewsBot/1.0; +https://satilus.github.io/Home/)';
 const SOURCES = [
   // Лише українськомовні видання. kino: true — розділ про кіно/шоубіз (беремо все, крім явно некіношного)
-  { lang: 'uk', name: '24 Канал Кіно', url: 'https://kino.24tv.ua/rss/all.xml', kino: true },
-  { lang: 'uk', name: 'УНІАН Lite', url: 'https://rss.unian.net/site/lite_ukr.rss', filter: true },
   { lang: 'uk', name: 'РБК-Україна Стайлер', url: 'https://www.rbc.ua/static/rss/styler.ukr.rss.xml', filter: true },
   { lang: 'uk', name: 'ТСН Гламур', url: 'https://tsn.ua/rss/glamur.rss', filter: true },
-  { lang: 'uk', name: 'НВ Життя', url: 'https://nv.ua/ukr/rss/life.xml', filter: true },
-  { lang: 'uk', name: 'Главред Кіно', url: 'https://glavred.net/rss/movies', filter: true },
   { lang: 'uk', name: 'Укрінформ', url: 'https://www.ukrinform.ua/rss/rubric-culture', filter: true },
   { lang: 'uk', name: 'Детектор медіа', url: 'https://detector.media/rss/', filter: true },
   { lang: 'uk', name: 'Українська правда. Життя', url: 'https://life.pravda.com.ua/rss/', filter: true },
@@ -70,12 +66,19 @@ for (const s of SOURCES) {
     const n0 = items.length;
     if (s.filter) items = items.filter(x => KINO.test(x.title) && !NOT_KINO.test(x.title));
     if (s.kino) items = items.filter(x => !NOT_KINO.test(x.title));
+    items.forEach(x => { if (/^https:\/\/([a-z]+\.)?rbc\.ua\/rus\//.test(x.url)) x.url = x.url.replace('/rus/', '/ukr/'); });
     const n1 = items.length, sample = items[0] ? items[0].url : '';
     items = items.filter(x => !RUSSIAN.test(x.title) && !BAD_DOMAIN.test(x.url) && /^https:\/\//.test(x.url));
     report.push(`✓ ${s.name}: ${n0} → кіно ${n1} → ${items.length}${n1 && !items.length ? ' (відсіяно, напр. ' + sample.slice(0, 60) + ')' : ''}`); all = all.concat(items.slice(0, 20));
   } catch (e) { report.push(`✗ ${s.name}: ${e.message}`); }
   await sleep(300);
 }
+// додати новини з попереднього запуску (останні 7 днів), щоб стрічка накопичувалась
+try {
+  const prev = JSON.parse(await get('https://raw.githubusercontent.com/Satilus/Home/news-data/news.json?t=' + Date.now()));
+  const keep = (prev.items || []).filter(x => x.lang === 'uk' && x.date && Date.now() - new Date(x.date) < 7 * 864e5 && !RUSSIAN.test(x.title) && !BAD_DOMAIN.test(x.url));
+  report.push(`↺ з попереднього запуску: ${keep.length}`); all = all.concat(keep);
+} catch (e) { report.push('↺ попередня стрічка недоступна'); }
 // прибрати дублікати за посиланням і схожими заголовками
 const seen = new Set();
 all = all.filter(x => { const k = x.url.split('?')[0]; const t = x.title.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '').slice(0, 60); if (seen.has(k) || seen.has(t)) return false; seen.add(k); seen.add(t); return true; });
