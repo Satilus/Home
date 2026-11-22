@@ -183,3 +183,11 @@ header h1{transition:none!important}
 .colc,.col-r{background:var(--glass-flat)!important;border:.5px solid var(--glass-edge)!important;box-shadow:inset 0 1px 0 var(--glass-hi),var(--glass-shadow)}
 .hero,.nrow,.nw{background:var(--glass-flat)!important;border:.5px solid var(--glass-edge)!important;box-shadow:inset 0 1px 0 var(--glass-hi),var(--glass-shadow)}
 .hero{border:0!important}
+
+/* вузькі екрани (iPhone SE): компактні кнопки в заголовку */
+header > div:first-child{flex:1;min-width:0}
+header h1{font-size:clamp(26px,8.6vw,34px)}
+@media (max-width:370px){
+  header .iconbtn,header .syncbtn{width:38px;height:38px;margin-left:4px}
+  header .iconbtn svg,header .syncbtn svg{width:19px;height:19px}
+}

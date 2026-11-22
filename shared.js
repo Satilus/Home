@@ -137,7 +137,7 @@
   .syncov .st{font-size:13px;color:var(--muted,#6C6C70)}
   .syncov a{color:var(--tint,#E0261C)}
   .syncbtn{width:44px;height:44px;border:0;background:transparent;color:var(--tint,#E0261C);display:inline-flex;align-items:center;justify-content:center;border-radius:22px;position:relative}
-  .bk-remind{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:12px 14px;border-radius:20px;background:var(--glass,var(--card));border:.5px solid var(--glass-edge,transparent);box-shadow:inset 0 1px 0 var(--glass-hi,transparent),0 8px 24px rgba(0,0,0,.08);animation:bkIn .55s cubic-bezier(.32,.72,0,1) both;transition:opacity .35s,transform .35s}\n  .bk-remind.bk-out{opacity:0;transform:translateY(-10px) scale(.97)}\n  @keyframes bkIn{from{opacity:0;transform:translateY(-12px) scale(.97)}}\n  .bk-e{font-size:26px}.bk-t{flex:1;display:flex;flex-direction:column}.bk-t b{font-size:15px}.bk-t small{font-size:12px;color:var(--muted,#6C6C70);line-height:1.35}\n  .bk-b{display:flex;flex-direction:column;gap:6px}.bk-b button{min-height:32px;padding:0 12px;border:0;border-radius:999px;font:600 13px -apple-system,system-ui,sans-serif;background:var(--fill,#EFEFF4);color:var(--ink,#000)}.bk-b button:first-child{background:var(--tint,#E0261C);color:#fff}\n  .syncbtn[data-dirty]::after{content:"";position:absolute;top:10px;right:9px;width:8px;height:8px;border-radius:4px;background:var(--star,#FF9F0A)}`;
+  .bk-remind{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:12px 14px;border-radius:20px;background:var(--glass,var(--card));border:.5px solid var(--glass-edge,transparent);box-shadow:inset 0 1px 0 var(--glass-hi,transparent),0 8px 24px rgba(0,0,0,.08);animation:bkIn .55s cubic-bezier(.32,.72,0,1) both;transition:opacity .35s,transform .35s}\n  .bk-remind.bk-out{opacity:0;transform:translateY(-10px) scale(.97)}\n  @keyframes bkIn{from{opacity:0;transform:translateY(-12px) scale(.97)}}\n  .bk-e{font-size:26px}.bk-t{flex:1;display:flex;flex-direction:column}.bk-t b{font-size:15px}.bk-t small{font-size:12px;color:var(--muted,#6C6C70);line-height:1.35}\n  .bk-b{display:flex;flex-direction:column;gap:6px}.bk-b button{min-height:32px;padding:0 12px;border:0;border-radius:999px;font:600 13px -apple-system,system-ui,sans-serif;background:var(--fill,#EFEFF4);color:var(--ink,#000)}.bk-b button:first-child{background:var(--tint,#E0261C);color:#fff}\n  .updbtn.spin svg{animation:updspin .9s linear infinite}@keyframes updspin{to{transform:rotate(360deg)}}\n  .syncbtn[data-dirty]::after{content:"";position:absolute;top:10px;right:9px;width:8px;height:8px;border-radius:4px;background:var(--star,#FF9F0A)}`;
   const ICON = '<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9a4 4 0 0 1 0 9z"/><path d="M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg>';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmt = t => t ? new Date(t).toLocaleString('uk-UA', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'ще ні разу';
@@ -171,6 +171,7 @@
         <p class="st" id="syncSt"></p>
       </div>
       <div class="bx"><h3>Застосунок</h3>
+        <button class="b go" data-upd>Оновити застосунок до останньої версії</button>
         <p>Сайт можна встановити на екран телефону: у Safari — «Поділитися» → «На екран Додому»; у Chrome — меню ⋮ → «Встановити застосунок». Відкриватиметься без панелей браузера й працюватиме без інтернету.</p>
         ${deferredInstall ? '<button class="b go" data-inst>Встановити</button>' : ''}
       </div>`;
@@ -258,15 +259,22 @@
     if (hdr) {
       const b = document.createElement('button'); b.className = 'syncbtn'; b.id = 'syncBtn';
       b.setAttribute('aria-label', 'Резервна копія і синхронізація'); b.innerHTML = ICON; b.onclick = open;
+      const u = document.createElement('button'); u.className = 'syncbtn updbtn'; u.id = 'updBtn';
+      u.setAttribute('aria-label', 'Оновити застосунок'); u.title = 'Оновити застосунок';
+      u.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><path d="M12 7.5v8M8.5 12.5 12 16l3.5-3.5"/></svg>';
+      u.onclick = updateApp;
       const last = hdr.lastElementChild;
-      if (last && last.tagName === 'DIV' && last.querySelector('button')) last.insertBefore(b, last.firstChild);
-      else { const wrap = document.createElement('div'); hdr.appendChild(wrap); wrap.appendChild(b); if (last && last.tagName === 'BUTTON') wrap.appendChild(last); }
+      if (last && last.tagName === 'DIV' && last.querySelector('button')) { last.insertBefore(b, last.firstChild); last.insertBefore(u, b); }
+      else { const wrap = document.createElement('div'); hdr.appendChild(wrap); wrap.appendChild(u); wrap.appendChild(b); if (last && last.tagName === 'BUTTON') wrap.appendChild(last); }
     }
     mark();
+    if (get('sync.newver', 0)) markNewVersion();
+    if (/[?&]u=\d+/.test(location.search)) history.replaceState(null, '', location.pathname + location.hash);
     ov.addEventListener('click', async e => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.x !== undefined) close();
       else if (b.dataset.exp !== undefined) download();
+      else if (b.dataset.upd !== undefined) updateApp();
       else if (b.dataset.imp !== undefined) ov.querySelector('[data-file]').click();
       else if (b.dataset.on !== undefined) {
         const t = ov.querySelector('[data-tok]').value.trim(); if (!t) return;
@@ -309,9 +317,31 @@
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && pushT && cfg().token) { clearTimeout(pushT); pushT = null; push().catch(() => {}); } });
   }
 
+  /* ---- оновлення застосунку ---- */
+  async function updateApp() {
+    const btn = document.getElementById('updBtn'); if (btn) btn.classList.add('spin');
+    try {
+      if (cfg().token && get('sync.dirty', 0)) await push().catch(() => {});   // спершу зберегти незбережене в хмару
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) { await reg.update().catch(() => {}); if (reg.waiting) reg.waiting.postMessage('skip'); }
+      }
+      if (window.caches) { const ks = await caches.keys(); await Promise.all(ks.filter(k => !k.endsWith('-img')).map(k => caches.delete(k))); }
+    } catch (e) {}
+    ls.removeItem('sync.newver');
+    const url = location.pathname + '?u=' + Date.now() + location.hash;
+    location.replace(url);
+  }
+  window.TyuUpdate = updateApp;
+  function markNewVersion() { const u = document.getElementById('updBtn'); if (u) { u.setAttribute('data-dirty', ''); u.setAttribute('aria-label', 'Доступна нова версія — оновити застосунок'); } }
+
   /* ---- PWA ---- */
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
-    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+      const hadController = !!navigator.serviceWorker.controller;
+      reg.addEventListener('updatefound', () => { const w = reg.installing; if (w) w.addEventListener('statechange', () => { if (w.state === 'installed' && hadController) { put('sync.newver', Date.now()); markNewVersion(); } }); });
+      setTimeout(() => reg.update().catch(() => {}), 3000);
+    }).catch(() => {}));
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
