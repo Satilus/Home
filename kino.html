@@ -31,6 +31,10 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .seg{display:flex;padding:2px;border-radius:9px;background:var(--seg);max-width:440px}
 .seg button{flex:1;min-height:32px;border:0;border-radius:7px;background:transparent;font-size:13px;font-weight:500}
 .seg button[aria-pressed=true]{background:var(--segOn);font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.04)}
+#types{max-width:520px;padding:3px;border-radius:12px}
+#types button{min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:10px;font-size:13px;color:var(--muted)}
+#types button[aria-pressed=true]{color:var(--tint)}
+#types button svg{display:block}
 .pills{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 18px}
 .pills button{min-height:36px;padding:0 14px;border-radius:18px;border:0;background:var(--seg);font-size:14px;font-weight:600}
 .pills button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
@@ -348,8 +352,12 @@ function paintPoster(it){
   document.querySelectorAll(`[data-p="${CSS.escape(it.id)}"]`).forEach(el => { if (!el.querySelector('img')) el.insertAdjacentHTML('beforeend', `<img alt="" referrerpolicy="no-referrer" src="${esc(m.poster)}" onload="this.classList.add('ok')" onerror="this.remove()">`); });
   document.querySelectorAll(`[data-r="${CSS.escape(it.id)}"]`).forEach(el => { el.innerHTML = STAR + esc(ratingOf(it).v) + (it.status === 'watched' && it.pep ? `<span class="mine" title="Мій рейтинг"><span class="peps">${'🌶️'.repeat(Math.min(it.pep, 4)) + (it.pep === 5 ? '🔥' : '')}</span></span>` : ''); });
 }
+const TYPE_ICON = (() => { const sv = d => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`; return {
+  movie: sv('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/>'),
+  series: sv('<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="m8 3 4 4 4-4"/>'),
+  anime: sv('<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>') }; })();
 function render(){
-  $('#types').innerHTML = [['movie','Фільми'],['series','Серіали'],['anime','Аніме']].map(([k,l]) => `<button aria-pressed="${ui.type===k}" data-type="${k}">${l}</button>`).join('');
+  $('#types').innerHTML = [['movie','Фільми'],['series','Серіали'],['anime','Аніме']].map(([k,l]) => `<button aria-pressed="${ui.type===k}" data-type="${k}">${TYPE_ICON[k]}<span>${l}</span></button>`).join('');
   const ofType = items.filter(i => i.type === ui.type);
   $('#statuses').innerHTML = ['watching','planned','watched'].map(k => `<button aria-pressed="${ui.status===k}" data-status="${k}">${LABEL[k]} ${ofType.filter(i=>i.status===k).length}</button>`).join('');
   const shown = ofType.filter(i => i.status === ui.status);

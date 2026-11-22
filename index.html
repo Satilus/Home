@@ -375,7 +375,7 @@ function splash(text){
 const items = store.get('lists.items', []) || [];
 const meta = store.get('lists.meta', {});
 const posterOf = it => (meta[it.id] && meta[it.id].poster) || it.poster || '';
-const posterHTML = (id, title, src) => `<span class="poster" style="background:${tint(id)}">${esc(initials(title))}${src ? `<img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(src)}" onload="this.classList.add('ok')" onerror="this.remove()">` : ''}</span>`;
+const posterHTML = (id, title, src) => `<span class="poster" data-p="${esc(id)}" style="background:${tint(id)}">${esc(initials(title))}${src ? `<img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(src)}" onload="this.classList.add('ok')" onerror="this.remove()">` : ''}</span>`;
 let toastT; const toast = t => { $('#toast').textContent = t; $('#toast').hidden = false; clearTimeout(toastT); toastT = setTimeout(() => $('#toast').hidden = true, 3000); };
 
 function renderTop(text){
@@ -388,6 +388,7 @@ function renderTop(text){
 }
 function renderWatching(){
   const w = items.filter(i => i.status === 'watching');
+  w.forEach(wantPoster);
   $('#watchingSec').innerHTML = w.length ? `<h2 class="sec">Продовжити перегляд</h2><div class="row">${w.map(it => `<a class="card" href="kino.html#open=${encodeURIComponent(it.id)}">${posterHTML(it.id, it.title, posterOf(it))}<span class="ct">${esc(it.title)}</span>${it.ep ? `<span class="cs">Серія ${it.ep}${it.total ? ' з ' + it.total : ''}</span>` : ''}</a>`).join('')}</div>` : '';
 }
 let pickIdx = -1;
@@ -396,12 +397,57 @@ function renderPick(){
   if (!pl.length) { $('#pickSec').innerHTML = items.length ? '' : `<h2 class="sec">Ідея на вечір</h2><div class="empty">Відкрий <a href="kino.html">Кінотеатр</a> — і тут з'являться ідеї з твого списку.</div>`; return; }
   let i; do { i = Math.floor(Math.random() * pl.length); } while (pl.length > 1 && i === pickIdx); pickIdx = i;
   const it = pl[i], TYPE = { movie: 'Фільм', series: 'Серіал', anime: 'Аніме' };
+  setTimeout(() => wantPoster(it));
   $('#pickSec').innerHTML = `<h2 class="sec">Ідея на вечір</h2><div class="pick">${posterHTML(it.id, it.title, posterOf(it))}<div><h3>${esc(it.title)}</h3><p>${esc([TYPE[it.type], String(it.year||'').slice(0,4)].filter(Boolean).join(' · '))} · з твого списку «Планую»</p><div class="btns"><a class="btn go" href="kino.html#open=${encodeURIComponent(it.id)}">Відкрити</a><button class="btn" id="another">Інша ідея</button></div></div></div>`;
   $('#another').onclick = renderPick;
 }
 
-/* ---------- новинки ---------- */
+
 const getJSON = async u => { const r = await fetch(u); if (!r.ok) throw new Error(r.status); return r.json(); };
+/* ---------- підтягування постерів, яких ще немає ---------- */
+const pq = [], pDone = new Set(); let pBusy = 0;
+async function findPoster(it){
+  const yr = String(it.year || '').slice(0, 4), q = it.orig || it.title;
+  const key = store.get('lists.tmdb', '');
+  if (key) {
+    const d = await getJSON(`https://api.themoviedb.org/3/search/${it.type === 'movie' ? 'movie' : 'tv'}?api_key=${encodeURIComponent(key)}&query=${encodeURIComponent(q)}${yr ? (it.type === 'movie' ? '&year=' : '&first_air_date_year=') + yr : ''}`);
+    const r = (d.results || []).find(x => x.poster_path && !isRussian(x));
+    if (r) return 'https://image.tmdb.org/t/p/w342' + r.poster_path;
+  }
+  if (it.type !== 'movie') {
+    if (it.tvm) { const s = await getJSON(`https://api.tvmaze.com/shows/${it.tvm}`); if (s.image) return s.image.medium; }
+    if (it.type === 'anime') {
+      const r = await fetch('https://graphql.anilist.co', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ query: 'query($s:String){Page(perPage:5){media(search:$s,type:ANIME){coverImage{large} startDate{year}}}}', variables: { s: q } }) });
+      const list = (((await r.json()).data || {}).Page || {}).media || [];
+      const m = list.find(x => yr && x.startDate && String(x.startDate.year) === yr) || list[0];
+      if (m && m.coverImage) return m.coverImage.large;
+    }
+    const list = await getJSON(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(q)}`);
+    const hit = list.map(x => x.show).filter(s => s.image && !(s.language === 'Russian')).sort((a, b) => (yr && String(b.premiered || '').startsWith(yr)) - (yr && String(a.premiered || '').startsWith(yr)))[0];
+    if (hit) return hit.image.medium;
+  } else {
+    const d = await getJSON(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=pageimages&piprop=thumbnail&pithumbsize=400&generator=search&gsrlimit=1&gsrsearch=${encodeURIComponent(q + ' ' + yr + ' film')}`);
+    const pg = Object.values((d.query || {}).pages || {})[0];
+    if (pg && pg.thumbnail) return pg.thumbnail.source;
+  }
+  return '';
+}
+function paint(id, src){
+  document.querySelectorAll(`[data-p="${CSS.escape(id)}"]`).forEach(el => { if (!el.querySelector('img')) el.insertAdjacentHTML('beforeend', `<img alt="" referrerpolicy="no-referrer" src="${esc(src)}" onload="this.classList.add('ok')" onerror="this.remove()">`); });
+}
+function wantPoster(it){ if (posterOf(it) || pDone.has(it.id)) return; pDone.add(it.id); pq.push(it); pumpP(); }
+function pumpP(){
+  while (pBusy < 3 && pq.length) {
+    const it = pq.shift(); pBusy++;
+    findPoster(it).then(src => {
+      if (!src) return;
+      const m = store.get('lists.meta', {}); m[it.id] = Object.assign({ t: 0 }, m[it.id], { poster: src }); store.set('lists.meta', m); meta[it.id] = m[it.id];
+      paint(it.id, src);
+    }).catch(() => {}).finally(() => { pBusy--; pumpP(); });
+  }
+}
+
+/* ---------- новинки ---------- */
 const tmdbKey = store.get('lists.tmdb', '');
 const SOURCES = tmdbKey
   ? [['cinema','У прокаті'],['soon','Скоро'],['tv','Серіали тижня']]
@@ -426,7 +472,8 @@ async function loadNews(kind){
       const anime = s.language === 'Japanese' && s.type === 'Animation';
       list.push({ key: 'tvm' + s.id, tvm: s.id, type: anime ? 'anime' : 'series', title: s.name, orig: s.name, year: (s.premiered || ep.airdate || '').slice(0, 4), poster: s.image ? s.image.medium : '', sub: [(s.network || s.webChannel || {}).name, new Date(ep.airdate).toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' })].filter(Boolean).join(' · '), w: (s.weight || 0) + (s.image ? 20 : 0) });
     }));
-    list.sort((a, b) => b.w - a.w); list = list.slice(0, 24);
+    list.sort((a, b) => b.w - a.w);
+    const withImg = list.filter(n => n.poster); list = (withImg.length >= 8 ? withImg : list).slice(0, 24);
   } else {
     const path = kind === 'cinema' ? 'movie/now_playing' : kind === 'soon' ? 'movie/upcoming' : 'trending/tv/week';
     const base = `https://api.themoviedb.org/3/${path}?api_key=${encodeURIComponent(tmdbKey)}&language=uk-UA`;
