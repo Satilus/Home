@@ -67,9 +67,10 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .box{padding:14px 16px;border-radius:14px;background:var(--card)}
 .box h3{margin:0 0 6px;font-size:13px;font-weight:600;text-transform:uppercase;color:var(--muted)}
 .box p{margin:0;font-size:15px;line-height:1.5}
-.myr{display:flex;gap:4px;flex-wrap:wrap}.myr button{flex:1;min-width:26px;height:36px;border:0;border-radius:8px;background:var(--fill);font-size:14px;font-weight:700;color:var(--ink2)}.myr button[aria-pressed=true]{background:var(--star);color:#fff}
+.pep{display:flex;gap:6px}.pep button{width:48px;height:48px;border:0;border-radius:12px;background:var(--fill);font-size:28px;line-height:1;padding:0;filter:grayscale(1);opacity:.35;transition:transform .15s,opacity .15s,filter .15s}.pep button.on{filter:none;opacity:1}.pep button:active{transform:scale(.88)}
+.peps{letter-spacing:-3px}
 .mynote{width:100%;min-height:72px;border:0;border-radius:10px;background:var(--fill);padding:10px 12px;font:inherit;color:inherit;resize:vertical}
-.mine{display:inline-flex;align-items:center;gap:3px;margin-left:6px;color:var(--star);font-weight:700}
+.mine{display:inline-flex;align-items:center;margin-left:6px;font-size:12px}
 .stepper{display:flex;gap:2px;padding:2px;border-radius:9px;background:var(--fill)}
 .stepper button{width:44px;height:36px;border:0;border-radius:7px;background:transparent;font-size:20px}
 .big{min-height:50px;border-radius:14px;border:0;font-size:17px;font-weight:600}
@@ -251,6 +252,7 @@ if (store.get('lists.cachev', 0) < 4) { meta = {}; store.set('lists.meta', {}); 
 let ui = Object.assign({ type:'series', status:'planned' }, store.get('lists.ui', {}));
 if (typeFixed.length) { typeFixed.forEach(id => { delete meta[id]; }); store.set('lists.meta', meta); const ex = store.get('lists.extras', {}); typeFixed.forEach(id => delete ex[id]); store.set('lists.extras', ex); store.set('lists.items', items); }
 let tmdbKey = store.get('lists.tmdb', '');
+items.forEach(i => { if (i.my) { i.pep = Math.ceil(i.my / 2); delete i.my; } });
 const save = () => { store.set('lists.items', items); store.set('lists.ui', ui); };
 const saveMeta = () => store.set('lists.meta', meta);
 
@@ -343,7 +345,7 @@ function posterHTML(it, big){
 function paintPoster(it){
   const m = meta[it.id]; if (!m || !m.poster) return;
   document.querySelectorAll(`[data-p="${CSS.escape(it.id)}"]`).forEach(el => { if (!el.querySelector('img')) el.insertAdjacentHTML('beforeend', `<img alt="" referrerpolicy="no-referrer" src="${esc(m.poster)}" onload="this.classList.add('ok')" onerror="this.remove()">`); });
-  document.querySelectorAll(`[data-r="${CSS.escape(it.id)}"]`).forEach(el => { el.innerHTML = STAR + esc(ratingOf(it).v) + (it.my ? `<span class="mine">· моя ${it.my}</span>` : ''); });
+  document.querySelectorAll(`[data-r="${CSS.escape(it.id)}"]`).forEach(el => { el.innerHTML = STAR + esc(ratingOf(it).v) + (it.status === 'watched' && it.pep ? `<span class="mine" title="Мій рейтинг"><span class="peps">${'🌶️'.repeat(Math.min(it.pep, 4)) + (it.pep === 5 ? '🔥' : '')}</span></span>` : ''); });
 }
 function render(){
   $('#types').innerHTML = [['movie','Фільми'],['series','Серіали'],['anime','Аніме']].map(([k,l]) => `<button aria-pressed="${ui.type===k}" data-type="${k}">${l}</button>`).join('');
@@ -352,7 +354,7 @@ function render(){
   const shown = ofType.filter(i => i.status === ui.status);
   $('#grid').innerHTML = shown.map(it => `
     <div class="item">
-      <button class="open" data-open="${esc(it.id)}" aria-label="${esc(it.title)}, рейтинг ${esc(ratingOf(it).v)}">${posterHTML(it)}<span class="ttl">${esc(it.title)}</span><span class="rt" data-r="${esc(it.id)}">${STAR}${esc(ratingOf(it).v)}${it.my ? `<span class="mine">· моя ${it.my}</span>` : ''}</span></button>
+      <button class="open" data-open="${esc(it.id)}" aria-label="${esc(it.title)}, рейтинг ${esc(ratingOf(it).v)}">${posterHTML(it)}<span class="ttl">${esc(it.title)}</span><span class="rt" data-r="${esc(it.id)}">${STAR}${esc(ratingOf(it).v)}${it.status === 'watched' && it.pep ? `<span class="mine" title="Мій рейтинг"><span class="peps">${'🌶️'.repeat(Math.min(it.pep, 4)) + (it.pep === 5 ? '🔥' : '')}</span></span>` : ''}</span></button>
       <button class="check" data-check="${esc(it.id)}" aria-pressed="${it.status==='watched'}" aria-label="${it.status==='watched' ? 'Повернути з переглянутих' : 'Позначити переглянутим'}">${CHECK}</button>
     </div>`).join('');
   $('#empty').hidden = shown.length > 0;
@@ -507,9 +509,10 @@ function openSheet(id){
     </div>
     <div class="box"><h3>Короткий зміст</h3><p>${esc(overview)}</p></div>
     <div id="extras">${extrasHTML(extrasCache[id] && (extrasCache[id].shots.length || extrasCache[id].cast.length) ? extrasCache[id] : null)}</div>
-    <div class="box" style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0">Моя оцінка${it.my ? ': ' + it.my + '/10' : ''}</h3>
-      <div class="myr" role="group" aria-label="Моя оцінка">${[1,2,3,4,5,6,7,8,9,10].map(n => `<button data-my="${n}" aria-pressed="${it.my===n}" aria-label="${n} з 10">${n}</button>`).join('')}</div>
-      ${it.watchedAt ? `<span class="meta">Переглянуто ${new Date(it.watchedAt).toLocaleDateString('uk-UA', {day:'numeric', month:'long', year:'numeric'})}</span>` : ''}
+    <div class="box" style="display:flex;flex-direction:column;gap:10px">
+      ${it.status === 'watched' ? `<h3 style="margin:0">Мій рейтинг${it.pep === 5 ? ' · вогонь!' : it.pep ? ' · ' + it.pep + ' з 5' : ''}</h3>
+      <div class="pep" role="group" aria-label="Мій рейтинг у перчиках">${[1,2,3,4,5].map(n => `<button data-pep="${n}" class="${(it.pep||0) >= n ? 'on' : ''}" aria-pressed="${it.pep===n}" aria-label="${n === 5 ? 'Вогонь — максимум' : n + ' з 5 перчиків'}">${n === 5 ? '🔥' : '🌶️'}</button>`).join('')}</div>
+      ${it.watchedAt ? `<span class="meta">Переглянуто ${new Date(it.watchedAt).toLocaleDateString('uk-UA', {day:'numeric', month:'long', year:'numeric'})}</span>` : ''}` : '<h3 style="margin:0">Нотатка</h3>'}
       <textarea class="mynote" id="myNote" placeholder="Нотатка: враження, з ким дивився, що порадили…">${esc(it.note || '')}</textarea></div>
     ${it.status === 'watching' && total ? `<div class="row box" style="padding:8px 8px 8px 16px"><span>Серія ${it.ep||0} з ${total}</span><div class="stepper"><button data-ep="-1" aria-label="Мінус серія">−</button><button data-ep="1" aria-label="Плюс серія">+</button></div></div>` : ''}
     <div><div class="lbl" style="padding:0 4px 8px">Статус</div>
@@ -530,7 +533,7 @@ $('#sheet').addEventListener('click', async e => {
   const id = $('#ov').dataset.id, it = items.find(i => i.id === id);
   if (b.dataset.close !== undefined) closeSheet();
   else if (b.dataset.set) { if (it && it.status !== b.dataset.set) setStatus(id, b.dataset.set); }
-  else if (b.dataset.my && it) { const n = Number(b.dataset.my); it.my = it.my === n ? 0 : n; save(); render(); openSheet(id); }
+  else if (b.dataset.pep && it) { const n = Number(b.dataset.pep); it.pep = it.pep === n ? 0 : n; save(); render(); openSheet(id); }
   else if (b.dataset.watch !== undefined) setStatus(id, 'watched');
   else if (b.dataset.unwatch !== undefined) unwatch(id);
   else if (b.dataset.ep && it) { const total = it.total || (meta[id]||{}).episodes; const n = Math.max(0, (it.ep||0) + Number(b.dataset.ep)); if (total && n >= total) { it.total = total; setStatus(id, 'watched', total); } else setStatus(id, 'watching', n); }
