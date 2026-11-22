@@ -487,6 +487,7 @@ let phrase = sessionStorage.getItem('home.phrase');
 const first = !phrase || QS.has('theme');
 if (first) { phrase = QS.has('theme') && phrase ? phrase : nextPhrase(); sessionStorage.setItem('home.phrase', phrase); }
 renderTop(phrase); renderWatching(); renderPick(); renderNews(); renderEpisodes().catch(() => {}); renderNewsTeaser();
-$('#wizBtn').onclick = () => wizard(0); $('#btnSettings').onclick = settingsSheet; $('#yearBtn').onclick = yearSheet;
+$('#wizBtn').onclick = () => wizard(0); $('#btnSettings').onclick = settingsSheet;
+$('#disc').onclick = e => { const b = e.currentTarget; b.setAttribute('aria-expanded', b.getAttribute('aria-expanded') !== 'true'); }; $('#yearBtn').onclick = yearSheet;
 if (first) splash(phrase);
 }
