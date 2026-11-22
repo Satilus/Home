@@ -25,7 +25,7 @@ const SOURCES = [
   { lang: 'en', name: 'Collider', url: 'https://collider.com/feed/category/movie-news/' },
 ];
 // слово має починатися з цих основ (щоб «редактор» не ловився як «актор»)
-const KINO = /(?<!\p{L})(кіно|фільм|серіал|кінопрем|трейлер|режисер|актор|акторк|мультфільм|мультсеріал|аніме|оскар|берлінале|netflix|кінофестивал|кінотеатр|голлівуд|кастинг)/iu;
+const KINO = /(?<!\p{L})(кіно(?!а)|фільм|серіал|кінопрем|трейлер|режисер|актор|акторк|мультфільм|мультсеріал|аніме|оскар|берлінале|netflix|кінофестивал|кінотеатр|голлівуд|кастинг)/iu;
 const NOT_KINO = /(?<!\p{L})(вистав|театр|концерт|альбом|пісн|виставк|книжк|роман\b)/iu;
 const RUSSIAN = /[ыэъё]/i;                      // російськомовні заголовки
 const BAD_DOMAIN = /^https?:\/\/[^/]*\.(ru|by)(\/|$)/i;
@@ -68,7 +68,7 @@ for (const s of SOURCES) {
   try {
     let items = s.gdelt ? await gdelt(s) : parseRss(await get(s.url), s);
     const n0 = items.length;
-    if (s.filter) items = items.filter(x => KINO.test(x.title) || (KINO.test(x.sum) && !NOT_KINO.test(x.title)));
+    if (s.filter) items = items.filter(x => KINO.test(x.title) && !NOT_KINO.test(x.title));
     items = items.filter(x => !RUSSIAN.test(x.title) && !BAD_DOMAIN.test(x.url) && /^https:\/\//.test(x.url));
     report.push(`✓ ${s.name}: ${n0} → ${items.length}`); all = all.concat(items.slice(0, 25));
   } catch (e) { report.push(`✗ ${s.name}: ${e.message}`); }

@@ -451,11 +451,22 @@ function settingsSheet(){
   };
 }
 
+
+/* ---------- свіжі новини (з гілки news-data) ---------- */
+async function renderNewsTeaser(){
+  let d = store.get('news.cache', null);
+  try { const r = await fetch('https://raw.githubusercontent.com/Satilus/Home/news-data/news.json', { cache: 'no-cache' }); if (r.ok) { d = await r.json(); store.set('news.cache', d); } } catch(e) {}
+  const list = d && (d.items || []).filter(x => x.lang === 'uk').slice(0, 3);
+  if (!list || !list.length) { $('#newsSec').innerHTML = ''; return; }
+  const ago = iso => { const h = Math.round((Date.now() - new Date(iso)) / 36e5); return !iso ? '' : h < 1 ? 'щойно' : h < 24 ? h + ' год тому' : Math.round(h / 24) + ' дн. тому'; };
+  $('#newsSec').innerHTML = `<h2 class="sec">Свіжі новини <a href="news.html">Усі ›</a></h2><div class="nws">${list.map(x => `<a class="nw" href="${esc(window.safeUrl(x.url) || 'news.html')}" target="_blank" rel="noopener noreferrer"><span class="th">${window.safeUrl(x.img) ? `<img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(window.safeUrl(x.img))}" data-ok data-rm>` : ''}</span><span><b>${esc(x.title)}</b><small>${esc(x.src)}${x.date ? ' · ' + esc(ago(x.date)) : ''}</small></span></a>`).join('')}</div>`;
+}
+
 /* ---------- старт ---------- */
 let phrase = sessionStorage.getItem('home.phrase');
 const first = !phrase || QS.has('theme');
 if (first) { phrase = QS.has('theme') && phrase ? phrase : nextPhrase(); sessionStorage.setItem('home.phrase', phrase); }
-renderTop(phrase); renderWatching(); renderPick(); renderNews(); renderEpisodes().catch(() => {});
+renderTop(phrase); renderWatching(); renderPick(); renderNews(); renderEpisodes().catch(() => {}); renderNewsTeaser();
 $('#wizBtn').onclick = () => wizard(0); $('#btnSettings').onclick = settingsSheet; $('#yearBtn').onclick = yearSheet;
 if (first) splash(phrase);
 }
