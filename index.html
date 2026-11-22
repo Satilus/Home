@@ -7,6 +7,10 @@
 <meta name="apple-mobile-web-app-title" content="Тю і Шо">
 <meta name="application-name" content="Тю і Шо">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="theme-color" content="#E0261C">
+<script src="shared.js"></script>
 <style>
 :root{color-scheme:light dark;
   --bg:#F2F2F7;--card:#FFFFFF;--ink:#000;--ink2:#3A3A3C;--muted:#6C6C70;--sep:#D1D1D6;--seg:#E3E3E8;--segOn:#FFFFFF;--fill:#EFEFF4;
@@ -63,6 +67,9 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .box{padding:14px 16px;border-radius:14px;background:var(--card)}
 .box h3{margin:0 0 6px;font-size:13px;font-weight:600;text-transform:uppercase;color:var(--muted)}
 .box p{margin:0;font-size:15px;line-height:1.5}
+.myr{display:flex;gap:4px;flex-wrap:wrap}.myr button{flex:1;min-width:26px;height:36px;border:0;border-radius:8px;background:var(--fill);font-size:14px;font-weight:700;color:var(--ink2)}.myr button[aria-pressed=true]{background:var(--star);color:#fff}
+.mynote{width:100%;min-height:72px;border:0;border-radius:10px;background:var(--fill);padding:10px 12px;font:inherit;color:inherit;resize:vertical}
+.mine{display:inline-flex;align-items:center;gap:3px;margin-left:6px;color:var(--star);font-weight:700}
 .stepper{display:flex;gap:2px;padding:2px;border-radius:9px;background:var(--fill)}
 .stepper button{width:44px;height:36px;border:0;border-radius:7px;background:transparent;font-size:20px}
 .big{min-height:50px;border-radius:14px;border:0;font-size:17px;font-weight:600}
@@ -336,7 +343,7 @@ function posterHTML(it, big){
 function paintPoster(it){
   const m = meta[it.id]; if (!m || !m.poster) return;
   document.querySelectorAll(`[data-p="${CSS.escape(it.id)}"]`).forEach(el => { if (!el.querySelector('img')) el.insertAdjacentHTML('beforeend', `<img alt="" referrerpolicy="no-referrer" src="${esc(m.poster)}" onload="this.classList.add('ok')" onerror="this.remove()">`); });
-  document.querySelectorAll(`[data-r="${CSS.escape(it.id)}"]`).forEach(el => { el.innerHTML = STAR + esc(ratingOf(it).v); });
+  document.querySelectorAll(`[data-r="${CSS.escape(it.id)}"]`).forEach(el => { el.innerHTML = STAR + esc(ratingOf(it).v) + (it.my ? `<span class="mine">· моя ${it.my}</span>` : ''); });
 }
 function render(){
   $('#types').innerHTML = [['movie','Фільми'],['series','Серіали'],['anime','Аніме']].map(([k,l]) => `<button aria-pressed="${ui.type===k}" data-type="${k}">${l}</button>`).join('');
@@ -345,7 +352,7 @@ function render(){
   const shown = ofType.filter(i => i.status === ui.status);
   $('#grid').innerHTML = shown.map(it => `
     <div class="item">
-      <button class="open" data-open="${esc(it.id)}" aria-label="${esc(it.title)}, рейтинг ${esc(ratingOf(it).v)}">${posterHTML(it)}<span class="ttl">${esc(it.title)}</span><span class="rt" data-r="${esc(it.id)}">${STAR}${esc(ratingOf(it).v)}</span></button>
+      <button class="open" data-open="${esc(it.id)}" aria-label="${esc(it.title)}, рейтинг ${esc(ratingOf(it).v)}">${posterHTML(it)}<span class="ttl">${esc(it.title)}</span><span class="rt" data-r="${esc(it.id)}">${STAR}${esc(ratingOf(it).v)}${it.my ? `<span class="mine">· моя ${it.my}</span>` : ''}</span></button>
       <button class="check" data-check="${esc(it.id)}" aria-pressed="${it.status==='watched'}" aria-label="${it.status==='watched' ? 'Повернути з переглянутих' : 'Позначити переглянутим'}">${CHECK}</button>
     </div>`).join('');
   $('#empty').hidden = shown.length > 0;
@@ -361,7 +368,7 @@ function toast(text){ $('#toastText').textContent = text; $('#toast').hidden = f
 function setStatus(id, next, ep){
   const it = items.find(i => i.id === id); if (!it) return;
   undoSnap = JSON.stringify(items);
-  if (next === 'watched' && it.status !== 'watched') it.prev = it.status;
+  if (next === 'watched' && it.status !== 'watched') { it.prev = it.status; it.watchedAt = Date.now(); }
   it.status = next; if (ep != null) it.ep = ep;
   save(); render(); toast(`«${it.title}» → ${LABEL[next]}`);
   if (!$('#ov').hidden && $('#ov').dataset.id === id) openSheet(id);
@@ -500,6 +507,10 @@ function openSheet(id){
     </div>
     <div class="box"><h3>Короткий зміст</h3><p>${esc(overview)}</p></div>
     <div id="extras">${extrasHTML(extrasCache[id] && (extrasCache[id].shots.length || extrasCache[id].cast.length) ? extrasCache[id] : null)}</div>
+    <div class="box" style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0">Моя оцінка${it.my ? ': ' + it.my + '/10' : ''}</h3>
+      <div class="myr" role="group" aria-label="Моя оцінка">${[1,2,3,4,5,6,7,8,9,10].map(n => `<button data-my="${n}" aria-pressed="${it.my===n}" aria-label="${n} з 10">${n}</button>`).join('')}</div>
+      ${it.watchedAt ? `<span class="meta">Переглянуто ${new Date(it.watchedAt).toLocaleDateString('uk-UA', {day:'numeric', month:'long', year:'numeric'})}</span>` : ''}
+      <textarea class="mynote" id="myNote" placeholder="Нотатка: враження, з ким дивився, що порадили…">${esc(it.note || '')}</textarea></div>
     ${it.status === 'watching' && total ? `<div class="row box" style="padding:8px 8px 8px 16px"><span>Серія ${it.ep||0} з ${total}</span><div class="stepper"><button data-ep="-1" aria-label="Мінус серія">−</button><button data-ep="1" aria-label="Плюс серія">+</button></div></div>` : ''}
     <div><div class="lbl" style="padding:0 4px 8px">Статус</div>
       <div class="seg" role="group" aria-label="Статус" style="max-width:none">${['watching','planned','watched'].map(k => `<button aria-pressed="${it.status===k}" data-set="${k}">${LABEL[k]}</button>`).join('')}</div></div>
@@ -510,6 +521,7 @@ function openSheet(id){
   if (!meta[id]) want(it);
   loadExtras(it).then(x => { if ($('#ov').dataset.id === id && $('#extras')) $('#extras').innerHTML = extrasHTML(x); });
 }
+$('#sheet').addEventListener('change', e => { if (e.target.id === 'myNote') { const it = items.find(i => i.id === $('#ov').dataset.id); if (it) { it.note = e.target.value.trim(); save(); } } });
 const closeSheet = () => { $('#ov').hidden = true; $('#ov').dataset.id = ''; };
 $('#ovBg').onclick = closeSheet;
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (!$('#lb').hidden) $('#lb').hidden = true; else if (!$('#ov').hidden) closeSheet(); } else if (!$('#lb').hidden && e.key === 'ArrowRight') $('#lbNx').click(); else if (!$('#lb').hidden && e.key === 'ArrowLeft') $('#lbPv').click(); });
@@ -518,6 +530,7 @@ $('#sheet').addEventListener('click', async e => {
   const id = $('#ov').dataset.id, it = items.find(i => i.id === id);
   if (b.dataset.close !== undefined) closeSheet();
   else if (b.dataset.set) { if (it && it.status !== b.dataset.set) setStatus(id, b.dataset.set); }
+  else if (b.dataset.my && it) { const n = Number(b.dataset.my); it.my = it.my === n ? 0 : n; save(); render(); openSheet(id); }
   else if (b.dataset.watch !== undefined) setStatus(id, 'watched');
   else if (b.dataset.unwatch !== undefined) unwatch(id);
   else if (b.dataset.ep && it) { const total = it.total || (meta[id]||{}).episodes; const n = Math.max(0, (it.ep||0) + Number(b.dataset.ep)); if (total && n >= total) { it.total = total; setStatus(id, 'watched', total); } else setStatus(id, 'watching', n); }
