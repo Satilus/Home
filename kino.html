@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="theme-color" content="#E0261C">
-<script src="shared.js?v=15"></script>
+<script src="shared.js?v=16"></script>
 <style>
 :root{color-scheme:light dark;
   --bg:#F2F2F7;--card:#FFFFFF;--ink:#000;--ink2:#3A3A3C;--muted:#6C6C70;--sep:#D1D1D6;--seg:#E3E3E8;--segOn:#FFFFFF;--fill:#EFEFF4;
@@ -236,8 +236,8 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .lb .cnt{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;font-size:13px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
-<link rel="stylesheet" href="glass.css?v=15">
-<script src="motion.js?v=15" defer></script>
+<link rel="stylesheet" href="glass.css?v=16">
+<script src="motion.js?v=16" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -1181,12 +1181,13 @@ $('#btnAdd').onclick = () => {
   $('#sheet').classList.remove('full'); clearPosterBg(); $('#sheet').innerHTML = `
     <div class="grab"></div>
     <div class="row"><span style="font-size:17px;font-weight:600">Додати: ${esc({movie:'фільм',series:'серіал',anime:'аніме'}[ui.type])}</span><button class="done" data-close>Готово</button></div>
-    <div class="field"><label for="q" class="sr">Назва</label><input id="q" type="search" placeholder="Назва (краще оригінальна)" autocomplete="off"></div>
+    <div class="field"><label for="addQ" class="sr">Назва</label><input id="addQ" type="search" placeholder="Назва (краще оригінальна)" autocomplete="off" enterkeyhint="search"></div>
     <div class="results" id="res"></div>
     <p class="hint">Нове потрапить у «Планую». Тип можна змінити вгорі списку перед додаванням.</p>`;
   $('#ov').dataset.id = ''; $('#ov').hidden = false;
-  let t; $('#q').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => search(e.target.value.trim()), 400); });
-  setTimeout(() => $('#q').focus(), 50);
+  let t; $('#addQ').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => search(e.target.value.trim()), 400); });
+  $('#addQ').addEventListener('keydown', e => { if (e.key === 'Enter') { clearTimeout(t); search(e.target.value.trim()); } });
+  setTimeout(() => $('#addQ').focus(), 50);
 };
 async function search(q){
   const box = $('#res'); if (!box) return;
@@ -1199,14 +1200,14 @@ async function search(q){
       found = (d.results||[]).filter(r => !isRussian(r)).slice(0,8).map(r => ({ title: r.title || r.name, orig: r.original_title || r.original_name, year: yearOf(r.release_date || r.first_air_date), poster: r.poster_path ? 'https://image.tmdb.org/t/p/w154' + r.poster_path : '' }));
     } else if (ui.type === 'series') {
       const d = await getJSON('https://api.tvmaze.com/search/shows?q=' + encodeURIComponent(q));
-      found = d.filter(x => !isRussian({ language: x.show.language, country: (x.show.network||x.show.webChannel||{}).country && (x.show.network||x.show.webChannel).country.code })).slice(0,8).map(x => ({ title: x.show.name, orig: x.show.name, year: yearOf(x.show.premiered), poster: x.show.image ? x.show.image.medium.replace('http:','https:') : '' }));
+      found = d.filter(x => !isRussian({ language: x.show.language, country: (x.show.network||x.show.webChannel||{}).country && (x.show.network||x.show.webChannel).country.code })).slice(0,8).map(x => ({ tvm: x.show.id, title: x.show.name, orig: x.show.name, year: yearOf(x.show.premiered), poster: x.show.image ? x.show.image.medium.replace('http:','https:') : '' }));
     } else if (ui.type === 'anime') {
-      const query = 'query($s:String){Page(perPage:8){media(search:$s,type:ANIME){title{romaji english} startDate{year} coverImage{medium}}}}';
+      const query = 'query($s:String){Page(perPage:8){media(search:$s,type:ANIME){id countryOfOrigin title{romaji english} startDate{year} coverImage{medium}}}}';
       const d = await getJSON('https://graphql.anilist.co', { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ query, variables:{ s:q } }) });
-      found = d.data.Page.media.map(m => ({ title: m.title.english || m.title.romaji, orig: m.title.romaji, year: String(m.startDate.year||''), poster: m.coverImage.medium }));
+      found = d.data.Page.media.filter(m => m.countryOfOrigin !== 'RU').map(m => ({ ani: m.id, title: m.title.english || m.title.romaji, orig: m.title.romaji, year: String(m.startDate.year||''), poster: m.coverImage.medium }));
     } else {
       const d = await getJSON(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=8&gsrsearch=${encodeURIComponent(q + ' film')}&prop=pageimages|description&piprop=thumbnail&pithumbsize=160&pilicense=any`);
-      found = Object.values((d.query||{}).pages||{}).filter(p => !isRussian({ description: p.description })).sort((a,b)=>a.index-b.index).map(p => ({ title: p.title.replace(/ \(.*film\)$/,''), orig: p.title.replace(/ \(.*film\)$/,''), year: ((p.title.match(/\((\d{4})/)||[])[1]) || ((p.description||'').match(/\d{4}/)||[''])[0], poster: p.thumbnail ? p.thumbnail.source : '' }));
+      found = Object.values((d.query||{}).pages||{}).filter(p => !isRussian({ description: p.description })).sort((a,b)=>a.index-b.index).map(p => ({ wt: p.title, title: p.title.replace(/ \(.*film\)$/,''), orig: p.title.replace(/ \(.*film\)$/,''), year: ((p.title.match(/\((\d{4})/)||[])[1]) || ((p.description||'').match(/\d{4}/)||[''])[0], poster: p.thumbnail ? p.thumbnail.source : '' }));
     }
     box.innerHTML = found.length ? found.map((f,i) => `<button class="res" data-add="${i}">${f.poster ? `<img alt="" referrerpolicy="no-referrer" src="${esc(f.poster)}">` : '<span class="ph"></span>'}<span style="display:flex;flex-direction:column"><span style="font-weight:600">${esc(f.title)}</span><span class="lbl">${esc([f.year, f.orig !== f.title ? f.orig : ''].filter(Boolean).join(' · '))}</span></span></button>`).join('') : '<div class="res lbl">Нічого не знайдено</div>';
   } catch(e) { box.innerHTML = '<div class="res lbl">Не вдалося з\'єднатися з джерелом даних</div>'; }
@@ -1214,7 +1215,10 @@ async function search(q){
 function addFound(i){
   const f = found[Number(i)]; if (!f) return;
   const it = { id: 'u' + Date.now().toString(36), type: ui.type, status: 'planned', title: f.title, orig: f.orig, year: f.year, imdb: '', overview: '' };
+  if (f.tvm) it.tvm = f.tvm; if (f.ani) it.ani = f.ani; if (f.wt) it.wt = f.wt;
+  if (items.some(x => x.type === it.type && ((it.tvm && x.tvm === it.tvm) || (it.ani && x.ani === it.ani) || (normT(x.title) === normT(it.title) && yearOf(x.year) === yearOf(it.year))))) { toast(`«${f.title}» уже є в списку`); return; }
   if (f.poster) meta[it.id] = { poster: f.poster, t: 0 };
+  undoSnap = null;
   items.unshift(it); ui.status = 'planned'; save(); closeSheet(); render(); toast(`«${f.title}» додано в «Планую»`);
 }
 
