@@ -12,8 +12,8 @@
 <meta name="theme-color" content="#E0261C">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<script src="shared.js?v=8"></script>
-<script src="phrases.js?v=8"></script>
+<script src="shared.js?v=9"></script>
+<script src="phrases.js?v=9"></script>
 <style>
 :root{color-scheme:light dark;
   --bg:#F2F2F7;--card:#FFFFFF;--ink:#000;--ink2:#3A3A3C;--muted:#6C6C70;--sep:#D1D1D6;--seg:#E3E3E8;--segOn:#FFFFFF;--fill:#EFEFF4;
@@ -30,7 +30,7 @@ a{color:inherit}
 .wrap{max-width:1080px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(110px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
 header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px}
 .eyebrow{font-size:13px;font-weight:600;color:var(--muted)}
-h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+h1{margin:0;font-size:clamp(26px,7.6vw,34px);font-weight:800;letter-spacing:-.02em;line-height:1.1;white-space:nowrap}
 h2.sec{margin:26px 0 10px;font-size:22px;font-weight:800;letter-spacing:-.01em;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 h2.sec a{font-size:15px;font-weight:600;color:var(--tint);text-decoration:none}
 .quote{position:relative;margin:4px 0 0;padding:16px 18px;border-radius:16px;background:var(--card);font-size:17px;line-height:1.45;font-weight:600}
@@ -70,6 +70,11 @@ h2.sec a{font-size:15px;font-weight:600;color:var(--tint);text-decoration:none}
 .tabbar a[aria-current=page]{color:var(--tint)}
 
 
+.iconbtn{width:44px;height:44px;border:0;background:transparent;color:var(--tint);display:inline-flex;align-items:center;justify-content:center;border-radius:22px}
+.set{padding:14px 16px;border-radius:20px;background:var(--card);display:flex;flex-direction:column;gap:10px}
+.set h3{margin:0;font-size:13px;font-weight:600;text-transform:uppercase;color:var(--muted)}
+.set p{margin:0;font-size:14px;color:var(--ink2);line-height:1.45}.set a{color:var(--tint)}
+.set input{min-height:44px;border:0;border-radius:12px;background:var(--fill);padding:0 12px;font:inherit;font-size:16px;color:inherit}
 .actions{display:grid;grid-template-columns:1.4fr 1fr;gap:10px;margin-top:12px}
 .act{display:flex;align-items:center;gap:12px;text-align:left;padding:14px;border-radius:22px;border:0;min-height:76px;transition:transform .35s cubic-bezier(.32,.72,0,1)}
 .act:active{transform:scale(.97)}
@@ -233,14 +238,14 @@ h2.sec a{font-size:15px;font-weight:600;color:var(--tint);text-decoration:none}
   #splash,.th-silent,.th-vhs,.th-cosmos .ring{animation:none!important}
 }
 </style>
-<link rel="stylesheet" href="glass.css?v=8">
-<script src="motion.js?v=8" defer></script>
+<link rel="stylesheet" href="glass.css?v=9">
+<script src="motion.js?v=9" defer></script>
 </head>
 <body>
 <div class="wrap" id="app">
   <header>
     <div><div class="eyebrow" id="today">Тю і Шо</div><h1>Тю і Шо</h1></div>
-    <div></div>
+    <div><button class="iconbtn" id="btnSettings" aria-label="Налаштування"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg></button></div>
   </header>
 
   <div class="quote" id="quote"></div>
@@ -330,12 +335,12 @@ function loadFont(t){
 /* ---------- ефекти фону ---------- */
 function runFx(cv, kind){
   if (kind === 'none' || reduce) return () => {};
-  const ctx = cv.getContext('2d'); let W, H, raf, run = true; const dpr = Math.min(2, devicePixelRatio || 1);
+  const ctx = cv.getContext('2d'); let W, H, raf, run = true; const dpr = 1;
   const size = () => { W = cv.width = innerWidth * dpr; H = cv.height = innerHeight * dpr; };
   size(); addEventListener('resize', size);
   const R = (a, b) => a + Math.random() * (b - a);
   let parts = [];
-  const N = { stars: 260, rain: 140, sand: 220, sparks: 90, speed: 70, grain: 0 }[kind] || 0;
+  const N = { stars: 140, rain: 80, sand: 120, sparks: 50, speed: 40, grain: 0 }[kind] || 0;
   for (let i = 0; i < N; i++) parts.push({ x: R(0, W), y: R(0, H), z: R(.2, 1), v: R(.3, 1), a: R(0, Math.PI * 2) });
   const cols = kind === 'matrix' ? Array.from({ length: Math.ceil(W / (16 * dpr)) }, () => R(-H, 0)) : null;
   const glyphs = 'アカサタナハマヤラワ0123456789ЖЮЇЄҐ#$%*+<>'.split('');
@@ -348,7 +353,7 @@ function runFx(cv, kind){
       cols.forEach((y, i) => { ctx.fillText(glyphs[(Math.random() * glyphs.length) | 0], i * 16 * dpr, y); cols[i] = y > H + R(0, 4000) ? 0 : y + 16 * dpr * dt / 45; });
     } else if (kind === 'grain') {
       ctx.clearRect(0, 0, W, H); ctx.fillStyle = 'rgba(255,255,255,.07)';
-      for (let i = 0; i < 900; i++) ctx.fillRect(R(0, W), R(0, H), dpr * R(1, 2.4), dpr * R(1, 2.4));
+      for (let i = 0; i < 350; i++) ctx.fillRect(R(0, W), R(0, H), dpr * R(1, 2.4), dpr * R(1, 2.4));
       if (Math.random() < .08) { ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(R(0, W), 0, dpr, H); }
     } else {
       ctx.clearRect(0, 0, W, H);
@@ -543,7 +548,7 @@ let news = [];
 async function renderNews(){
   $('#newsSeg').innerHTML = SOURCES.length > 1 ? SOURCES.map(([k, l]) => `<button aria-pressed="${k === tab}" data-tab="${k}">${l}</button>`).join('') : '';
   $('#newsSeg').hidden = SOURCES.length < 2;
-  $('#newsNote').innerHTML = tmdbKey ? 'Дані: TMDB. Російське відфільтровано.' : 'Прем\'єри перших серій за останній тиждень і найближчі дні (TVmaze). Щоб бачити фільми в прокаті, додай ключ TMDB у <a href="kino.html">Кінотеатрі</a> → ⚙.';
+  $('#newsNote').innerHTML = tmdbKey ? 'Дані: TMDB. Російське відфільтровано.' : 'Прем\'єри перших серій за останній тиждень і найближчі дні (TVmaze). Щоб бачити фільми в прокаті, додай ключ TMDB у налаштуваннях (⚙ угорі).';
   try { news = await loadNews(tab); } catch (e) { $('#news').innerHTML = '<div class="empty" style="width:100%">Не вдалося завантажити новинки. Перевір інтернет.</div>'; return; }
   $('#news').innerHTML = news.length ? news.map((n, i) => { const has = inList(n); return `<div class="card">${posterHTML(n.key, n.title, n.poster)}<button class="add" data-add="${i}" ${has ? 'disabled aria-label="Уже в списку"' : `aria-label="Додати «${esc(n.title)}» у «Планую»"`}>${has ? '✓' : '+'}</button><span class="ct">${esc(n.title)}</span><span class="cs">${esc(n.sub || n.year)}</span></div>`; }).join('') : '<div class="empty" style="width:100%">Поки нічого нового.</div>';
 }
@@ -683,12 +688,31 @@ async function shareYear(st){
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
 }
 
+
+/* ---------- налаштування ---------- */
+function settingsSheet(){
+  const key = store.get('lists.tmdb', '');
+  const sh = hSheet(`<div class="wz-top"><span style="font-size:17px;font-weight:700">Налаштування</span><button class="done" data-hx>Готово</button></div>
+    <div class="set"><h3>Ключ TMDB (необов'язково)</h3>
+      <p>Без ключа постери й описи беруться з TVmaze, AniList і Вікіпедії. З ключем — описи українською, кращі постери, фільми в прокаті, «Де дивитися» й схожі фільми. Ключ зберігається тільки в цьому браузері й не синхронізується.</p>
+      <input id="keyIn" type="password" autocomplete="off" placeholder="API Key (v3)" value="${esc(key)}" aria-label="Ключ TMDB">
+      <p><a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">Отримати ключ на themoviedb.org</a></p></div>
+    <div class="btns"><button class="btn go" data-savekey>Зберегти</button>${key ? '<button class="btn" data-delkey>Видалити ключ</button>' : ''}</div>`, 'Налаштування');
+  sh.onclick = e => {
+    const save = e.target.closest('[data-savekey]'), del = e.target.closest('[data-delkey]'); if (!save && !del) return;
+    const v = del ? '' : sh.querySelector('#keyIn').value.trim();
+    store.set('lists.tmdb', v);
+    ['lists.meta', 'lists.extras', 'lists.more', 'home.news'].forEach(k => localStorage.removeItem(k));
+    toast(v ? 'Ключ TMDB збережено' : 'Ключ видалено'); setTimeout(() => location.reload(), 600);
+  };
+}
+
 /* ---------- старт ---------- */
 let phrase = sessionStorage.getItem('home.phrase');
 const first = !phrase || QS.has('theme');
 if (first) { phrase = QS.has('theme') && phrase ? phrase : nextPhrase(); sessionStorage.setItem('home.phrase', phrase); }
 renderTop(phrase); renderWatching(); renderPick(); renderNews(); renderEpisodes().catch(() => {});
-$('#wizBtn').onclick = () => wizard(0); $('#yearBtn').onclick = yearSheet;
+$('#wizBtn').onclick = () => wizard(0); $('#btnSettings').onclick = settingsSheet; $('#yearBtn').onclick = yearSheet;
 if (first) splash(phrase);
 }
 </script>

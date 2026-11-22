@@ -1,11 +1,11 @@
-/* «Тю і Шо» — спільне для всіх сторінок: резервна копія, синхронізація через GitHub Gist, PWA.
+/* «Тю і Шо» — спільне для всіх сторінок (Головна, Кінотеатр): резервна копія, синхронізація через GitHub Gist, PWA.
    Токен GitHub вводить користувач; він зберігається лише в цьому браузері й ніколи не потрапляє в копію чи Gist. */
 (function () {
   'use strict';
   const FILE = 'tyuisho.json';
-  const PREFIXES = ['lists.', 'coins.', 'cams.'];
+  const PREFIXES = ['lists.'];
   /* кеші та ключі — не синхронізуємо */
-  const SKIP = new Set(['lists.meta', 'lists.extras', 'lists.more', 'lists.tmdb', 'lists.cachev', 'coins.wikiRows', 'coins.autoTried', 'cams.autoTried']);
+  const SKIP = new Set(['lists.meta', 'lists.extras', 'lists.more', 'lists.tmdb', 'lists.cachev']);
   const isData = k => PREFIXES.some(p => k.startsWith(p)) && !SKIP.has(k);
   const ls = window.localStorage;
   const get = (k, d) => { try { const v = ls.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
@@ -121,7 +121,7 @@
 
   function counts() {
     const n = (k, f) => (get(k, []) || []).filter(f || (() => true)).length;
-    return `${n('lists.items')} у Кінотеатрі · ${n('coins.items', i => i.status === 'have')} монет · ${n('cams.items', i => i.status === 'have')} фотоапаратів`;
+    return `${n('lists.items')} у Кінотеатрі · ${n('lists.items', i => i.status === 'watched')} переглянуто`;
   }
   function render() {
     const c = cfg();
@@ -129,7 +129,7 @@
       <div class="hd"><h2>Дані</h2><button class="x" data-x>Готово</button></div>
       <p class="st">${esc(counts())}</p>
       <div class="bx"><h3>Резервна копія</h3>
-        <p>Увесь вміст сайту (Кінотеатр, монети, фотоапарати) в одному файлі. Ключі й токени в копію не потрапляють.</p>
+        <p>Увесь Кінотеатр в одному файлі: списки, статуси, перчики, нотатки. Ключі й токени в копію не потрапляють.</p>
         <button class="b go" data-exp>Завантажити копію</button>
         <button class="b" data-imp>Відновити з файлу…</button>
         <input type="file" accept="application/json,.json" data-file hidden>

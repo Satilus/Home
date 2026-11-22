@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="theme-color" content="#E0261C">
-<script src="shared.js?v=8"></script>
+<script src="shared.js?v=9"></script>
 <style>
 :root{color-scheme:light dark;
   --bg:#F2F2F7;--card:#FFFFFF;--ink:#000;--ink2:#3A3A3C;--muted:#6C6C70;--sep:#D1D1D6;--seg:#E3E3E8;--segOn:#FFFFFF;--fill:#EFEFF4;
@@ -176,15 +176,14 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .lb .cnt{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;font-size:13px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
-<link rel="stylesheet" href="glass.css?v=8">
-<script src="motion.js?v=8" defer></script>
+<link rel="stylesheet" href="glass.css?v=9">
+<script src="motion.js?v=9" defer></script>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div><div class="eyebrow" id="srcLabel">Тю і Шо</div><h1>Кінотеатр</h1></div>
     <div>
-      <button class="iconbtn" id="btnSettings" aria-label="Налаштування"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg></button>
       <button class="iconbtn" id="btnAdd" aria-label="Додати"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 4v16M4 12h16"></path></svg></button>
     </div>
   </header>
@@ -208,7 +207,6 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 <div class="tabbar"><nav aria-label="Розділи">
   <a href="index.html"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg>Головна</a>
   <a href="kino.html" aria-current="page"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="3"></rect><path d="M10 9.5v6l5-3z"></path></svg>Кінотеатр</a>
-<!-- Нумізматика (coins.html) і Фотоапарати (cameras.html) тимчасово приховані -->
 </nav></div>
 <div class="lb" id="lb" hidden role="dialog" aria-label="Кадр"><img id="lbImg" alt=""><button class="x" id="lbX" aria-label="Закрити">×</button><button class="pv" id="lbPv" aria-label="Попередній кадр">‹</button><button class="nx" id="lbNx" aria-label="Наступний кадр">›</button><div class="cnt" id="lbCnt"></div></div>
 <div class="toast" id="toast" role="status" hidden><span id="toastText"></span><button id="toastUndo">Скасувати</button></div>
@@ -450,7 +448,7 @@ function render(){
   renderTools(); ofType.forEach(wantFacts);
   $('#foot').innerHTML = tmdbKey
     ? 'Дані: <a href="https://www.themoviedb.org" rel="noopener">TMDB</a>. This product uses the TMDB API but is not endorsed or certified by TMDB.'
-    : 'Дані: <a href="https://www.tvmaze.com" rel="noopener">TVmaze</a>, <a href="https://anilist.co" rel="noopener">AniList</a>, <a href="https://www.wikipedia.org" rel="noopener">Вікіпедія</a>. Для описів українською й кращих постерів додай ключ TMDB у налаштуваннях.';
+    : 'Дані: <a href="https://www.tvmaze.com" rel="noopener">TVmaze</a>, <a href="https://anilist.co" rel="noopener">AniList</a>, <a href="https://www.wikipedia.org" rel="noopener">Вікіпедія</a>. Для описів українською й кращих постерів додай ключ TMDB у налаштуваннях на Головній (⚙).';
   shown.forEach(want);
 }
 
@@ -763,7 +761,7 @@ function moreHTML(it, x){
   let h = '';
   if (x.trailer) h += `<div class="trailer" data-trailer="${esc(x.trailer)}"><img alt="" loading="lazy" src="https://i.ytimg.com/vi/${esc(x.trailer)}/hqdefault.jpg" onerror="this.remove()"><button data-play aria-label="Дивитися трейлер"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></button><span>Трейлер</span></div>`;
   if (x.providers.length) h += `<div class="box"><h3>Де дивитися в Україні</h3><div class="prov">${x.providers.map(p => `<span class="pv"><img alt="" src="${esc(p.logo)}" loading="lazy"><span><b>${esc(p.name)}</b><small>${esc(p.how)}</small></span></span>`).join('')}</div><p class="hint" style="margin-top:8px">Дані JustWatch через TMDB${x.provLink ? ` · <a href="${esc(x.provLink)}" target="_blank" rel="noopener">усі варіанти</a>` : ''}</p></div>`;
-  else if (!tmdbKey && it.type !== 'anime') h += `<p class="hint" style="padding:0 4px;margin:0">Щоб бачити, де дивитися, і схожі фільми — додай ключ TMDB у ⚙.</p>`;
+  else if (!tmdbKey && it.type !== 'anime') h += `<p class="hint" style="padding:0 4px;margin:0">Щоб бачити, де дивитися, і схожі фільми — додай ключ TMDB у налаштуваннях на Головній (⚙).</p>`;
   if (x.similar.length) h += `<div><div class="lbl" style="padding:0 4px 8px">Схоже</div><div class="simrow">${x.similar.map((s, i) => { const has = items.some(t => (t.orig && s.orig && t.orig.toLowerCase() === s.orig.toLowerCase()) || t.title.toLowerCase() === s.title.toLowerCase()); return `<div class="sim"><span class="poster" style="background:${tint(s.title)}">${esc(initials(s.title))}<img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(s.poster)}" onload="this.classList.add('ok')" onerror="this.remove()"></span><button class="add" data-sim="${i}" ${has ? 'disabled aria-label="Уже в списку"' : `aria-label="Додати «${esc(s.title)}» у «Планую»"`}>${has ? '✓' : '+'}</button><span class="st">${esc(s.title)}</span><span class="sy">${esc(s.year)}</span></div>`; }).join('')}</div></div>`;
   return h;
 }
@@ -909,19 +907,6 @@ function addFound(i){
   if (f.poster) meta[it.id] = { poster: f.poster, t: 0 };
   items.unshift(it); ui.status = 'planned'; save(); closeSheet(); render(); toast(`«${f.title}» додано в «Планую»`);
 }
-
-/* ---------- налаштування ---------- */
-$('#btnSettings').onclick = () => {
-  $('#sheet').setAttribute('aria-label', 'Налаштування');
-  $('#sheet').classList.remove('full'); $('#sheet').innerHTML = `
-    <div class="grab"></div>
-    <div class="row"><span style="font-size:17px;font-weight:600">Налаштування</span><button class="done" data-close>Готово</button></div>
-    <div class="box"><h3>Ключ TMDB (необов'язково)</h3>
-      <p class="hint" style="margin-bottom:10px">Без ключа постери й описи беруться з TVmaze, AniList і Вікіпедії. З ключем TMDB — описи українською й постери для всього. Ключ зберігається тільки в цьому браузері.</p>
-      <div class="field"><label for="keyIn" class="sr">Ключ TMDB</label><input id="keyIn" type="password" autocomplete="off" placeholder="API Key (v3)" value="${esc(tmdbKey)}"></div></div>
-    <button class="big go" data-savekey>Зберегти</button>`;
-  $('#ov').dataset.id = ''; $('#ov').hidden = false;
-};
 
 render();
 /* відкриття картки з головної: kino.html#open=<id> */

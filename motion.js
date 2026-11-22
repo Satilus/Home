@@ -22,8 +22,7 @@
         if (ticking) return; ticking = true;
         requestAnimationFrame(() => {
           const y = Math.max(0, scrollY);
-          document.body.classList.toggle('scrolled', y > 44);
-          if (!reduce) { const k = Math.round(Math.min(1, y / 60) * 100) / 100; if (k !== lastK) { lastK = k; h1.style.transform = k ? `scale(${1 - k * 0.06})` : ''; h1.style.opacity = k ? String(1 - k * 0.9) : ''; } }
+          const on = y > 44; if (on !== lastK) { lastK = on; document.body.classList.toggle('scrolled', on); }
           ticking = false;
         });
       };
@@ -120,33 +119,7 @@
       if (selOf(t.closest(GROUPS)) !== t) t.click();
     }, true);
 
-    /* ---------- поява карток каскадом (лише нові, без повторів при перемальовуванні) ---------- */
-    const seen = new Set();
-    const SEL = '.item, .card, .pick, .quote, .stats, .box, h2.sec, .empty';
-    const io = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
-      let i = 0;
-      entries.forEach(e => {
-        if (!e.isIntersecting) return;
-        const el = e.target; io.unobserve(el);
-        el.style.animationDelay = Math.min(i++ * 45, 360) + 'ms';
-        el.classList.add('rv-in');
-      });
-    }, { rootMargin: '0px 0px -6% 0px' }) : null;
-    function keyOf(el) {
-      const b = el.matches('[data-open]') ? el : el.querySelector('[data-open],[data-add],a[href]');
-      return b ? (b.dataset.open || b.dataset.add || b.getAttribute('href')) + '|' + (el.closest('#news') ? 'n' : '') : null;
-    }
-    function reveal(root) {
-      if (reduce || !io) return;
-      (root.matches && root.matches(SEL) ? [root] : []).concat([...(root.querySelectorAll ? root.querySelectorAll(SEL) : [])]).forEach(el => {
-        if (el.closest('.sheet, #splash, .syncov') || el.classList.contains('rv')) return;
-        const k = keyOf(el);
-        if (k && seen.has(k)) return;
-        if (k) seen.add(k);
-        el.classList.add('rv'); io.observe(el);
-      });
-    }
-    reveal(document.body);
+    const reveal = () => {};
 
     /* ---------- спостереження за перемальовуванням ---------- */
     let segT;
