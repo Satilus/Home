@@ -73,23 +73,61 @@ for (const s of SOURCES) {
   } catch (e) { report.push(`✗ ${s.name}: ${e.message}`); }
   await sleep(300);
 }
+const trCache = new Map();
 // додати новини з попереднього запуску (останні 7 днів), щоб стрічка накопичувалась
 try {
   const prev = JSON.parse(await get('https://raw.githubusercontent.com/Satilus/Home/news-data/news.json?t=' + Date.now()));
-  const keep = (prev.items || []).filter(x => x.lang === 'uk' && x.date && Date.now() - new Date(x.date) < 7 * 864e5 && KINO.test(x.title) && !NOT_KINO.test(x.title) && !RUSSIAN.test(x.title) && !BAD_DOMAIN.test(x.url));
+  const fresh = x => x.date && Date.now() - new Date(x.date) < 7 * 864e5;
+  (prev.items || []).filter(x => x.lang === 'en' && x.tr && x.orig).forEach(x => trCache.set(x.url.split('?')[0], x));
+  const keep = (prev.items || []).filter(x => fresh(x) && ((x.lang === 'uk' && KINO.test(x.title) && !NOT_KINO.test(x.title) && !RUSSIAN.test(x.title) && !BAD_DOMAIN.test(x.url)) || (x.lang === 'en' && x.tr)));
   report.push(`↺ з попереднього запуску: ${keep.length}`); all = all.concat(keep);
 } catch (e) { report.push('↺ попередня стрічка недоступна'); }
 // прибрати дублікати за посиланням і схожими заголовками
 const seen = new Set();
 all = all.filter(x => { const k = x.url.split('?')[0]; const t = x.title.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '').slice(0, 60); if (seen.has(k) || seen.has(t)) return false; seen.add(k); seen.add(t); return true; });
 all.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-const uk = all.filter(x => x.lang === 'uk').slice(0, 80), en = [];
+const uk = all.filter(x => x.lang === 'uk').slice(0, 80), en = all.filter(x => x.lang === 'en').slice(0, 70);
+
+// ---------- автоматичний переклад світових новин українською ----------
+async function gtx(text) {
+  const u = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=uk&dt=t&q=' + encodeURIComponent(text);
+  const j = JSON.parse(await get(u, 10000));
+  return (j[0] || []).map(p => p[0]).join('');
+}
+async function mymemory(text) {
+  const j = JSON.parse(await get('https://api.mymemory.translated.net/get?langpair=en|uk&q=' + encodeURIComponent(text.slice(0, 480)), 10000));
+  const t = j && j.responseData && j.responseData.translatedText;
+  if (!t || /MYMEMORY WARNING|QUERY LENGTH/i.test(t)) throw new Error('mymemory');
+  return t;
+}
+let trOk = 0, trFail = 0, trReused = 0, trEngine = {};
+async function translate(text) {
+  if (!text) return '';
+  for (const [name, fn] of [['google', gtx], ['mymemory', mymemory]]) {
+    try { const t = (await fn(text)).trim(); if (t) { trEngine[name] = (trEngine[name] || 0) + 1; return t; } } catch (e) {}
+  }
+  throw new Error('переклад недоступний');
+}
+for (const x of en) {
+  const c = trCache.get(x.url.split('?')[0]);
+  if (c) { x.orig = c.orig; x.title = c.title; x.sum = c.sum; x.tr = true; trReused++; continue; }
+  try {
+    const sep = '\n\n§§\n\n';
+    const out = await translate(x.title + (x.sum ? sep + x.sum : ''));
+    const [t, ...rest] = out.split(/\s*§§\s*/);
+    x.orig = x.title; x.title = t.trim(); x.sum = rest.join(' ').trim(); x.tr = true; trOk++;
+  } catch (e) { x.tr = false; trFail++; }
+  await sleep(250);
+}
+report.push(`🌐 переклад: нових ${trOk}, з кешу ${trReused}, не вдалося ${trFail} ${JSON.stringify(trEngine)}`);
+const enShown = en.filter(x => x.tr);   // без перекладу не показуємо
+
 // прев'ю для тих, у кого немає картинки (og:image статті)
-const need = uk.filter(x => !x.img).slice(0, 60);
+const need = uk.concat(en).filter(x => !x.img).slice(0, 70);
 for (let i = 0; i < need.length; i += 6) await Promise.all(need.slice(i, i + 6).map(async x => { x.img = await ogImage(x.url); }));
 const fix = u => /^https:\/\//.test(u) ? u : (/^\/\//.test(u) ? 'https:' + u : '');
-const out = { updated: new Date().toISOString(), sources: report, items: uk.concat(en).map(x => ({ ...x, img: fix(x.img) })) };
+const out = { updated: new Date().toISOString(), sources: report, items: uk.concat(enShown).map(x => ({ ...x, img: fix(x.img) })) };
 fs.mkdirSync('out', { recursive: true });
 fs.writeFileSync('out/news.json', JSON.stringify(out));
 console.log(report.join('\n'));
-console.log(`Новин: ${uk.length}, з прев'ю: ${out.items.filter(x => x.img).length}`);
+console.log(`Україна: ${uk.length}, світ (перекладено): ${enShown.length}, з прев'ю: ${out.items.filter(x => x.img).length}`);
