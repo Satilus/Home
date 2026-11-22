@@ -415,6 +415,18 @@ async function shareYear(st){
 
 
 /* ---------- налаштування ---------- */
+const THEMES_UI = [
+  ['standard', 'Стандартна', 'linear-gradient(135deg,#ffd9d4,#e7e0ff 55%,#ffe8c7)', '#E0261C', ''],
+  ['xmas', 'Різдвяна', 'linear-gradient(135deg,#f7d6da,#d7efdc 55%,#f8e8b8)', '#C8102E', '🎄'],
+  ['summer', 'Літня', 'linear-gradient(135deg,#ffe2a6,#b9f1ee 55%,#ffc9b8)', '#FF7A00', '☀️'],
+  ['winter', 'Зимова', 'linear-gradient(135deg,#d6ebff,#eef6ff 55%,#dcd6ff)', '#1C7ED6', '❄️'],
+  ['clear', 'Прозора', 'linear-gradient(135deg,#ff5f9e,#8b6cf0 50%,#3fd0ff)', '#7048E8', '◌']
+];
+function themesHTML(){
+  const cur = window.TyuTheme ? window.TyuTheme.get() : 'standard';
+  return THEMES_UI.map(([k, n, bg, tint, e]) => `<button class="th" data-theme-pick="${k}" aria-pressed="${k === cur}"><span class="prev" style="background:${bg}"><i style="background:${tint}"></i><i class="g"></i><i class="g2"></i>${e ? `<em>${e}</em>` : ''}</span><b>${n}</b></button>`).join('');
+}
+
 async function paintPush(sh){
   const box = sh.querySelector('#pushSet'); if (!box || !window.TyuPush) return;
   const st = await window.TyuPush.status();
@@ -430,6 +442,7 @@ async function paintPush(sh){
 function settingsSheet(){
   const key = store.get('lists.tmdb', '');
   const sh = hSheet(`<div class="wz-top"><span style="font-size:17px;font-weight:700">Налаштування</span><button class="done" data-hx>Готово</button></div>
+    <div class="set"><h3>Тема оформлення</h3><div class="themes" id="themes">${themesHTML()}</div></div>
     <div class="set"><h3>Ключ TMDB (необов'язково)</h3>
       <p>Без ключа постери й описи беруться з TVmaze, AniList і Вікіпедії. З ключем — описи українською, кращі постери, фільми в прокаті, «Де дивитися» й схожі фільми. Ключ зберігається тільки в цьому браузері й не синхронізується.</p>
       <input id="keyIn" type="password" autocomplete="off" placeholder="API Key (v3)" value="${esc(key)}" aria-label="Ключ TMDB">
@@ -438,6 +451,8 @@ function settingsSheet(){
     <div class="set" id="pushSet"><h3>Сповіщення про нові серії</h3><p>Перевіряю…</p></div>`, 'Налаштування');
   paintPush(sh);
   sh.onclick = e => {
+    const tb = e.target.closest('[data-theme-pick]');
+    if (tb) { window.TyuTheme.set(tb.dataset.themePick); sh.querySelector('#themes').innerHTML = themesHTML(); toast('Тема: ' + tb.querySelector('b').textContent); return; }
     const pb = e.target.closest('[data-push]');
     if (pb) { pb.disabled = true; const on = pb.dataset.push === 'on';
       (on ? window.TyuPush.enable() : window.TyuPush.disable()).then(() => { toast(on ? 'Сповіщення ввімкнено 🔔' : 'Сповіщення вимкнено'); paintPush(sh); })

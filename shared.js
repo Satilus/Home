@@ -18,6 +18,17 @@
   /* безпечні посилання з даних: лише https */
   window.safeUrl = u => /^https:\/\//i.test(String(u || '')) ? String(u) : '';
 
+  /* ---- тема оформлення (зберігається в lists.theme → синхронізується) ---- */
+  const THEME_TINT = { standard: '#E0261C', xmas: '#C8102E', summer: '#FF7A00', winter: '#1C7ED6', clear: '#7048E8' };
+  function applyTheme(t) {
+    t = THEME_TINT[t] ? t : 'standard';
+    if (t === 'standard') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', THEME_TINT[t]);
+  }
+  try { applyTheme(JSON.parse(localStorage.getItem('lists.theme') || '"standard"')); } catch (e) {}
+  window.TyuTheme = { set: t => { if (localStorage.getItem('lists.theme') === null) localStorage.setItem('lists.theme', '"standard"'); localStorage.setItem('lists.theme', JSON.stringify(t)); applyTheme(t); }, get: () => { try { return JSON.parse(localStorage.getItem('lists.theme') || '"standard"'); } catch (e) { return 'standard'; } } };
+  document.addEventListener('DOMContentLoaded', () => applyTheme(window.TyuTheme.get()));
+
   const FILE = 'tyuisho.json';
   const PREFIXES = ['lists.'];
   /* кеші та ключі — не синхронізуємо */

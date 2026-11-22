@@ -27,10 +27,10 @@
 body{background:var(--bg)}
 body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
-    radial-gradient(38% 30% at 12% 8%, rgba(255,92,72,.30), transparent 70%),
-    radial-gradient(34% 28% at 92% 22%, rgba(140,110,255,.26), transparent 70%),
-    radial-gradient(40% 32% at 70% 88%, rgba(255,170,60,.22), transparent 70%),
-    radial-gradient(30% 26% at 8% 70%, rgba(60,180,255,.18), transparent 70%);
+    radial-gradient(38% 30% at 12% 8%, var(--g1,rgba(255,92,72,.30)), transparent 70%),
+    radial-gradient(34% 28% at 92% 22%, var(--g2,rgba(140,110,255,.26)), transparent 70%),
+    radial-gradient(40% 32% at 70% 88%, var(--g3,rgba(255,170,60,.22)), transparent 70%),
+    radial-gradient(30% 26% at 8% 70%, var(--g4,rgba(60,180,255,.18)), transparent 70%);
   transform:translateZ(0)}
 @media (prefers-color-scheme:dark){body::before{opacity:.75}}
 
@@ -173,7 +173,7 @@ button,.btn,.tabbar a{-webkit-tap-highlight-color:transparent}
 .item > .open:active{transform:translateX(var(--dx,0px)) scale(.96)}
 .item.swiping > .open,.item.swiping > .open:active{transform:translateX(var(--dx,0px))!important}
 .act:not(.act-main),.ep{background:var(--glass-flat)!important;border:.5px solid var(--glass-edge)!important;box-shadow:inset 0 1px 0 var(--glass-hi),var(--glass-shadow)}
-.act-main{box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 10px 28px rgba(224,38,28,.35)}
+.act-main{box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 10px 28px color-mix(in srgb,var(--tint) 35%,transparent)}
 
 /* продуктивність */
 .navbar{transform:translateZ(0)}
@@ -191,3 +191,45 @@ header h1{font-size:clamp(26px,8.6vw,34px)}
   header .iconbtn,header .syncbtn{width:38px;height:38px;margin-left:4px}
   header .iconbtn svg,header .syncbtn svg{width:19px;height:19px}
 }
+
+
+/* ================= ТЕМИ (html[data-theme], вибір у налаштуваннях) ================= */
+/* 2. Різдвяна: червоний, ялинково-зелений, золото, сніг */
+html[data-theme="xmas"]{--tint:#C8102E;--green:#1E8E3E;--star:#E2B33C;--bg:#F6F1EA;
+  --g1:rgba(200,16,46,.42);--g2:rgba(30,142,62,.40);--g3:rgba(226,179,60,.42);--g4:rgba(30,142,62,.28)}
+@media (prefers-color-scheme:dark){html[data-theme="xmas"]{--tint:#FF4D5E;--green:#3DD06B;--star:#F2C14E;--bg:#0B0F0C;
+  --g1:rgba(200,16,46,.55);--g2:rgba(30,142,62,.50);--g3:rgba(226,179,60,.35);--g4:rgba(200,16,46,.30)}}
+/* 3. Літня: сонце, персик, бірюзове море */
+html[data-theme="summer"]{--tint:#FF7A00;--green:#00B894;--star:#FFB300;--bg:#FFF6EA;
+  --g1:rgba(255,183,0,.55);--g2:rgba(0,200,200,.42);--g3:rgba(255,122,89,.45);--g4:rgba(255,220,120,.50)}
+@media (prefers-color-scheme:dark){html[data-theme="summer"]{--tint:#FF9F2E;--green:#2EE6B8;--star:#FFC233;--bg:#120B05;
+  --g1:rgba(255,160,0,.45);--g2:rgba(0,180,190,.40);--g3:rgba(255,100,70,.38);--g4:rgba(255,200,90,.25)}}
+/* 4. Зимова: крижаний блакитний, іній, легкий сніг */
+html[data-theme="winter"]{--tint:#1C7ED6;--green:#12B886;--star:#74C0FC;--bg:#EEF5FB;
+  --g1:rgba(116,192,252,.55);--g2:rgba(160,205,255,.60);--g3:rgba(28,126,214,.32);--g4:rgba(180,170,255,.38)}
+@media (prefers-color-scheme:dark){html[data-theme="winter"]{--tint:#4DABF7;--green:#38D9A9;--star:#A5D8FF;--bg:#050A12;
+  --g1:rgba(77,171,247,.42);--g2:rgba(120,160,255,.30);--g3:rgba(28,126,214,.35);--g4:rgba(150,140,255,.25)}}
+/* 5. Прозора: максимум скла — яскравий фон і майже прозорі поверхні з розмиттям */
+html[data-theme="clear"]{--tint:#7048E8;--bg:#E9E4FF;
+  --g1:rgba(255,64,129,.55);--g2:rgba(112,72,232,.55);--g3:rgba(0,200,255,.50);--g4:rgba(255,190,0,.45);
+  --glass:rgba(255,255,255,.28);--glass-flat:rgba(255,255,255,.30);--glass-strong:rgba(255,255,255,.48);--glass-edge:rgba(255,255,255,.65);--glass-hi:rgba(255,255,255,.95)}
+@media (prefers-color-scheme:dark){html[data-theme="clear"]{--tint:#B197FC;--bg:#0A0614;
+  --g1:rgba(255,64,129,.60);--g2:rgba(112,72,232,.65);--g3:rgba(0,200,255,.50);--g4:rgba(255,190,0,.35);
+  --glass:rgba(20,20,30,.28);--glass-flat:rgba(20,20,30,.32);--glass-strong:rgba(25,25,35,.55);--glass-edge:rgba(255,255,255,.22);--glass-hi:rgba(255,255,255,.35)}}
+html[data-theme="clear"] body::before{inset:-10%;filter:none;opacity:1}
+html[data-theme="clear"] :is(.quote,.stats,.pick,.empty,.box,.act,.ep,.nrow,.nw,.colc,.col-r,.search,.chips2 button,.pills button,.seg,header .iconbtn,header .syncbtn){
+  -webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%)}
+html[data-theme="clear"] :is(.ttl,.ct,h1,h2.sec,.cols-h){text-shadow:0 1px 10px color-mix(in srgb,var(--bg) 70%,transparent)}
+
+/* сніг для різдвяної та зимової тем (один шар, рухається трансформацією — дешево) */
+html[data-theme="xmas"] body::after,html[data-theme="winter"] body::after{content:"";position:fixed;left:0;right:0;top:-100vh;height:200vh;z-index:-1;pointer-events:none;
+  background-image:
+    radial-gradient(2.5px 2.5px at 20px 30px,var(--snow) 50%,transparent 51%),radial-gradient(2px 2px at 90px 120px,var(--snow) 50%,transparent 51%),
+    radial-gradient(3px 3px at 160px 60px,var(--snow) 50%,transparent 51%),radial-gradient(1.5px 1.5px at 230px 160px,var(--snow) 50%,transparent 51%),
+    radial-gradient(2px 2px at 300px 20px,var(--snow) 50%,transparent 51%),radial-gradient(2.5px 2.5px at 50px 200px,var(--snow) 50%,transparent 51%);
+  background-size:340px 240px;opacity:.85;animation:snow 38s linear infinite;will-change:transform}
+html[data-theme="winter"] body::after{opacity:.55;animation-duration:55s}
+html[data-theme]{--snow:#9fbad3}
+@media (prefers-color-scheme:dark){html[data-theme]{--snow:#ffffff}}
+@keyframes snow{to{transform:translateY(100vh)}}
+@media (prefers-reduced-motion:reduce){html[data-theme] body::after{animation:none}}
