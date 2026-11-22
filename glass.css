@@ -120,14 +120,23 @@ header > div:last-child{display:flex;align-items:center}
 body.scrolled .navbar{opacity:1;transform:none;pointer-events:auto!important}
 header h1{transform-origin:left bottom;transition:transform .1s linear,opacity .1s linear;will-change:transform,opacity}
 
-/* «крапля» вибору, що перетікає */
-.seg{position:relative;isolation:isolate}
-.seg-ind{position:absolute;left:0;top:0;z-index:-1;border-radius:999px;background:var(--glass-strong);
+/* «крапля» вибору, що перетікає, і лінза при перетягуванні */
+.seg,.tabbar nav{position:relative;isolation:isolate;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.tabbar a{-webkit-user-drag:none}
+.seg-ind{position:absolute;left:0;top:0;z-index:-1;border-radius:999px;background:var(--glass-strong);pointer-events:none;
+  --x:0px;--y:0px;--sx:1;--sy:1;transform:translate(var(--x),var(--y)) scale(var(--sx),var(--sy));
   box-shadow:inset 0 1px 0 var(--glass-hi),0 4px 14px rgba(0,0,0,.14);
-  transition:transform .5s var(--spring),width .5s var(--spring),height .5s var(--spring)}
+  transition:transform .55s var(--spring),width .5s var(--spring),height .5s var(--spring),background .3s,box-shadow .3s}
 #types .seg-ind{border-radius:22px}
-.seg.has-ind button[aria-pressed=true]{background:transparent!important;box-shadow:none!important}
-
+.seg.has-ind button[aria-pressed=true],.tabbar nav.has-ind a[aria-current=page]{background:transparent!important;box-shadow:none!important}
+.seg button,.tabbar a{position:relative;transition:transform .35s var(--bounce),color .25s}
+/* лінза: крапля збільшується, стає прозорішою, з яскравим обідком і «збільшує» те, що під нею */
+.lensing .seg-ind{transition:transform .14s cubic-bezier(.2,.8,.3,1),width .25s var(--spring),height .25s var(--spring),background .2s,box-shadow .2s;
+  background:color-mix(in srgb,var(--glass-strong) 22%,transparent);
+  -webkit-backdrop-filter:blur(1.5px) saturate(1.8) brightness(1.08);backdrop-filter:blur(1.5px) saturate(1.8) brightness(1.08);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.35),inset 0 0 0 1px rgba(255,255,255,.45),0 10px 30px rgba(0,0,0,.22)}
+.lens-under{transform:scale(1.14)}
+.lensing a,.lensing button{transition:transform .25s var(--bounce),color .2s}
 /* поява каскадом */
 .motion-ready .rv{opacity:0}
 .motion-ready .rv.rv-in{animation:rvIn .6s var(--spring) both}
