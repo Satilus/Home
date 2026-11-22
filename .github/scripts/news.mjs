@@ -5,30 +5,31 @@ import fs from 'node:fs';
 
 const UA = 'Mozilla/5.0 (compatible; TyuiShoNewsBot/1.0; +https://satilus.github.io/Home/)';
 const SOURCES = [
-  // Україна (загальні стрічки фільтруються за кіно-словами)
+  // Лише українськомовні видання; загальні стрічки фільтруються за кіно-словами в заголовку
   { lang: 'uk', name: 'Укрінформ', url: 'https://www.ukrinform.ua/rss/rubric-culture', filter: true },
+  { lang: 'uk', name: 'Укрінформ', url: 'https://www.ukrinform.ua/rss/block-lastnews', filter: true },
   { lang: 'uk', name: 'Детектор медіа', url: 'https://detector.media/rss/', filter: true },
   { lang: 'uk', name: 'Українська правда. Життя', url: 'https://life.pravda.com.ua/rss/', filter: true },
+  { lang: 'uk', name: 'Українська правда', url: 'https://www.pravda.com.ua/rss/', filter: true },
   { lang: 'uk', name: 'ТСН', url: 'https://tsn.ua/rss/full.rss', filter: true },
   { lang: 'uk', name: 'УНІАН', url: 'https://rss.unian.net/site/news_ukr.rss', filter: true },
   { lang: 'uk', name: 'РБК-Україна', url: 'https://www.rbc.ua/static/rss/all.ukr.rss.xml', filter: true },
-  { lang: 'uk', name: 'Gazeta.ua', url: 'https://gazeta.ua/rss', filter: true },
   { lang: 'uk', name: 'НВ', url: 'https://nv.ua/ukr/rss/all.xml', filter: true },
-  { lang: 'uk', name: 'Суспільне', url: 'https://suspilne.media/rss/all.rss', filter: true },
-  { lang: 'uk', name: 'Межа', url: 'https://mezha.ua/feed/', filter: true },
-  // Світ
-  { lang: 'en', name: 'Variety', url: 'https://variety.com/v/film/feed/' },
-  { lang: 'en', name: 'Deadline', url: 'https://deadline.com/v/film/feed/' },
-  { lang: 'en', name: 'The Hollywood Reporter', url: 'https://www.hollywoodreporter.com/c/movies/movie-news/feed/' },
-  { lang: 'en', name: 'IndieWire', url: 'https://www.indiewire.com/c/film/feed/' },
-  { lang: 'en', name: 'Screen Rant', url: 'https://screenrant.com/feed/movie-news/' },
-  { lang: 'en', name: 'Collider', url: 'https://collider.com/feed/category/movie-news/' },
+  { lang: 'uk', name: '24 Канал', url: 'https://24tv.ua/rss/all.xml', filter: true },
+  { lang: 'uk', name: 'Главред', url: 'https://glavred.net/rss', filter: true },
+  { lang: 'uk', name: 'Обозреватель', url: 'https://www.obozrevatel.com/ukr/rss.xml', filter: true },
+  { lang: 'uk', name: 'ZAXID.NET', url: 'https://zaxid.net/rss/all.xml', filter: true },
+  { lang: 'uk', name: 'LB.ua', url: 'https://lb.ua/rss/ukr/news.xml', filter: true },
+  { lang: 'uk', name: 'Радіо Свобода', url: 'https://www.radiosvoboda.org/api/zrqiteuuir', filter: true },
+  { lang: 'uk', name: 'Еспресо', url: 'https://espreso.tv/rss', filter: true },
+  { lang: 'uk', name: 'Фокус', url: 'https://focus.ua/uk/rss', filter: true },
+  { lang: 'uk', name: 'Новини.LIVE', url: 'https://novyny.live/rss', filter: true },
 ];
 // слово має починатися з цих основ (щоб «редактор» не ловився як «актор»)
 const KINO = /(?<!\p{L})(кіно(?!а)|фільм|серіал|кінопрем|трейлер|режисер|актор|акторк|мультфільм|мультсеріал|аніме|оскар|берлінале|netflix|кінофестивал|кінотеатр|голлівуд|кастинг)/iu;
 const NOT_KINO = /(?<!\p{L})(вистав|театр|концерт|альбом|пісн|виставк|книжк|роман\b)/iu;
 const RUSSIAN = /[ыэъё]/i;                      // російськомовні заголовки
-const BAD_DOMAIN = /^https?:\/\/[^/]*\.(ru|by)(\/|$)/i;
+const BAD_DOMAIN = /^https?:\/\/[^/]*\.(ru|by)(\/|$)|\/(rus|ru)\//i;
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function get(url, ms = 12000) {
@@ -70,7 +71,7 @@ for (const s of SOURCES) {
     const n0 = items.length;
     if (s.filter) items = items.filter(x => KINO.test(x.title) && !NOT_KINO.test(x.title));
     items = items.filter(x => !RUSSIAN.test(x.title) && !BAD_DOMAIN.test(x.url) && /^https:\/\//.test(x.url));
-    report.push(`✓ ${s.name}: ${n0} → ${items.length}`); all = all.concat(items.slice(0, 25));
+    report.push(`✓ ${s.name}: ${n0} → ${items.length}`); all = all.concat(items.slice(0, 20));
   } catch (e) { report.push(`✗ ${s.name}: ${e.message}`); }
   await sleep(300);
 }
@@ -78,13 +79,13 @@ for (const s of SOURCES) {
 const seen = new Set();
 all = all.filter(x => { const k = x.url.split('?')[0]; const t = x.title.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '').slice(0, 60); if (seen.has(k) || seen.has(t)) return false; seen.add(k); seen.add(t); return true; });
 all.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-const uk = all.filter(x => x.lang === 'uk').slice(0, 60), en = all.filter(x => x.lang === 'en').slice(0, 60);
+const uk = all.filter(x => x.lang === 'uk').slice(0, 80), en = [];
 // прев'ю для тих, у кого немає картинки (og:image статті)
-const need = uk.concat(en).filter(x => !x.img).slice(0, 50);
+const need = uk.filter(x => !x.img).slice(0, 60);
 for (let i = 0; i < need.length; i += 6) await Promise.all(need.slice(i, i + 6).map(async x => { x.img = await ogImage(x.url); }));
 const fix = u => /^https:\/\//.test(u) ? u : (/^\/\//.test(u) ? 'https:' + u : '');
 const out = { updated: new Date().toISOString(), sources: report, items: uk.concat(en).map(x => ({ ...x, img: fix(x.img) })) };
 fs.mkdirSync('out', { recursive: true });
 fs.writeFileSync('out/news.json', JSON.stringify(out));
 console.log(report.join('\n'));
-console.log(`Україна: ${uk.length}, світ: ${en.length}, з прев'ю: ${out.items.filter(x => x.img).length}`);
+console.log(`Новин: ${uk.length}, з прев'ю: ${out.items.filter(x => x.img).length}`);
