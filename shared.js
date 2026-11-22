@@ -5,7 +5,7 @@
   const FILE = 'tyuisho.json';
   const PREFIXES = ['lists.', 'coins.', 'cams.'];
   /* кеші та ключі — не синхронізуємо */
-  const SKIP = new Set(['lists.meta', 'lists.extras', 'lists.tmdb', 'lists.cachev', 'coins.wikiRows', 'coins.autoTried', 'cams.autoTried']);
+  const SKIP = new Set(['lists.meta', 'lists.extras', 'lists.more', 'lists.tmdb', 'lists.cachev', 'coins.wikiRows', 'coins.autoTried', 'cams.autoTried']);
   const isData = k => PREFIXES.some(p => k.startsWith(p)) && !SKIP.has(k);
   const ls = window.localStorage;
   const get = (k, d) => { try { const v = ls.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
@@ -111,7 +111,7 @@
   .syncov .st{font-size:13px;color:var(--muted,#6C6C70)}
   .syncov a{color:var(--tint,#E0261C)}
   .syncbtn{width:44px;height:44px;border:0;background:transparent;color:var(--tint,#E0261C);display:inline-flex;align-items:center;justify-content:center;border-radius:22px;position:relative}
-  .syncbtn[data-dirty]::after{content:"";position:absolute;top:10px;right:9px;width:8px;height:8px;border-radius:4px;background:var(--star,#FF9F0A)}`;
+  .bk-remind{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:12px 14px;border-radius:20px;background:var(--glass,var(--card));-webkit-backdrop-filter:blur(22px) saturate(185%);backdrop-filter:blur(22px) saturate(185%);border:.5px solid var(--glass-edge,transparent);box-shadow:inset 0 1px 0 var(--glass-hi,transparent),0 8px 24px rgba(0,0,0,.08);animation:bkIn .55s cubic-bezier(.32,.72,0,1) both;transition:opacity .35s,transform .35s}\n  .bk-remind.bk-out{opacity:0;transform:translateY(-10px) scale(.97)}\n  @keyframes bkIn{from{opacity:0;transform:translateY(-12px) scale(.97)}}\n  .bk-e{font-size:26px}.bk-t{flex:1;display:flex;flex-direction:column}.bk-t b{font-size:15px}.bk-t small{font-size:12px;color:var(--muted,#6C6C70);line-height:1.35}\n  .bk-b{display:flex;flex-direction:column;gap:6px}.bk-b button{min-height:32px;padding:0 12px;border:0;border-radius:999px;font:600 13px -apple-system,system-ui,sans-serif;background:var(--fill,#EFEFF4);color:var(--ink,#000)}.bk-b button:first-child{background:var(--tint,#E0261C);color:#fff}\n  .syncbtn[data-dirty]::after{content:"";position:absolute;top:10px;right:9px;width:8px;height:8px;border-radius:4px;background:var(--star,#FF9F0A)}`;
   const ICON = '<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9a4 4 0 0 1 0 9z"/><path d="M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg>';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmt = t => t ? new Date(t).toLocaleString('uk-UA', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'ще ні разу';
@@ -162,6 +162,22 @@
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     put('sync.lastBackup', Date.now()); ls.removeItem('sync.dirtyBackup');
+  }
+
+
+  /* ---- нагадування про резервну копію (якщо синхронізація вимкнена) ---- */
+  function backupReminder() {
+    if (cfg().token || !/(\/|index\.html)$/.test(location.pathname)) return;
+    if (!ls.getItem('lists.items')) return;
+    const now = Date.now(), last = get('sync.lastBackup', 0), rem = get('sync.remind', 0);
+    if (now - last < 7 * 864e5 || now - rem < 864e5) return;
+    const hdr = document.querySelector('header'); if (!hdr) return;
+    const b = document.createElement('div'); b.className = 'bk-remind'; b.setAttribute('role', 'status');
+    b.innerHTML = `<span class="bk-e">💾</span><span class="bk-t"><b>${last ? 'Тиждень без резервної копії' : 'Ще не було резервної копії'}</b><small>Збережи файл — і списки не загубляться. Або увімкни синхронізацію в «Дані».</small></span><span class="bk-b"><button data-bk="save">Зберегти</button><button data-bk="later" aria-label="Нагадати пізніше">Пізніше</button></span>`;
+    hdr.insertAdjacentElement('afterend', b);
+    b.addEventListener('click', e => { const k = e.target.closest('[data-bk]'); if (!k) return;
+      if (k.dataset.bk === 'save') download(); else put('sync.remind', Date.now());
+      b.classList.add('bk-out'); setTimeout(() => b.remove(), 400); });
   }
 
   function init() {
@@ -218,6 +234,7 @@
       } catch (err) { status('Не вдалося відновити: ' + err.message); }
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && !ov.hidden) close(); });
+    backupReminder();
     if (!sessionStorage.getItem('sync.reloaded')) syncOnLoad(); else sessionStorage.removeItem('sync.reloaded');
     /* перед закриттям — встигнути відправити */
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && pushT && cfg().token) { clearTimeout(pushT); pushT = null; push().catch(() => {}); } });

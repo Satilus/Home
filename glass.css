@@ -179,3 +179,12 @@ button,.btn,.tabbar a{-webkit-tap-highlight-color:transparent}
   .motion-ready .rv{opacity:1}
   .poster img{filter:none;transform:none}
 }
+
+/* пошук, сортування, жанри */
+.search,.sortsel,.chips2 button{background:var(--glass)!important;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:.5px solid var(--glass-edge)!important;box-shadow:inset 0 1px 0 var(--glass-hi),var(--glass-shadow)}
+.chips2 button[aria-pressed=true]{background:var(--tint)!important;border-color:transparent!important;color:#fff}
+.search:focus-within{box-shadow:inset 0 1px 0 var(--glass-hi),0 0 0 3px color-mix(in srgb,var(--tint) 30%,transparent)}
+.item > .open:active{transform:translateX(var(--dx,0px)) scale(.96)}
+.item.swiping > .open,.item.swiping > .open:active{transform:translateX(var(--dx,0px))!important}
+.act:not(.act-main),.ep{background:var(--glass)!important;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:.5px solid var(--glass-edge)!important;box-shadow:inset 0 1px 0 var(--glass-hi),var(--glass-shadow)}
+.act-main{box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 10px 28px rgba(224,38,28,.35)}
