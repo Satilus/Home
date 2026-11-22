@@ -29,6 +29,50 @@
   window.TyuTheme = { set: t => { if (localStorage.getItem('lists.theme') === null) localStorage.setItem('lists.theme', '"standard"'); localStorage.setItem('lists.theme', JSON.stringify(t)); applyTheme(t); }, get: () => { try { return JSON.parse(localStorage.getItem('lists.theme') || '"standard"'); } catch (e) { return 'standard'; } } };
   document.addEventListener('DOMContentLoaded', () => applyTheme(window.TyuTheme.get()));
 
+  /* ---- звуки (синтез у браузері, без файлів; lists.sound, за замовчуванням увімкнено) ---- */
+  let actx = null;
+  const soundOn = () => { try { return JSON.parse(localStorage.getItem('lists.sound') || 'true') !== false; } catch (e) { return true; } };
+  function ac() {
+    if (!actx) {
+      try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } catch (e) {}   // поважати беззвучний режим iPhone і не перебивати музику
+      const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; actx = new C();
+    }
+    try { if (actx.state === 'suspended' && actx.resume) { const r = actx.resume(); if (r && r.catch) r.catch(() => {}); } } catch (e) {}
+    return actx;
+  }
+  function noise(a, dur) { const b = a.createBuffer(1, Math.max(1, a.sampleRate * dur), a.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; const n = a.createBufferSource(); n.buffer = b; return n; }
+  function env(a, g, t0, peak, att, dec) { g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(peak, t0 + att); g.gain.exponentialRampToValueAtTime(0.0001, t0 + att + dec); }
+  const SOUNDS = {
+    /* клацання кінопроектора: два сухі клацання й легкий низький стук */
+    click(a, t) {
+      [0, 0.032].forEach((off, i) => { const n = noise(a, 0.02), f = a.createBiquadFilter(), g = a.createGain(); f.type = 'bandpass'; f.frequency.value = i ? 2600 : 1900; f.Q.value = 4; n.connect(f).connect(g).connect(a.destination); env(a, g, t + off, 0.22, 0.002, 0.018); n.start(t + off); n.stop(t + off + 0.03); });
+      const o = a.createOscillator(), g = a.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.05); o.connect(g).connect(a.destination); env(a, g, t, 0.12, 0.003, 0.05); o.start(t); o.stop(t + 0.07);
+    },
+    /* коротке тихе «тік» (серія, перчик) */
+    tick(a, t) { const n = noise(a, 0.012), f = a.createBiquadFilter(), g = a.createGain(); f.type = 'highpass'; f.frequency.value = 2400; n.connect(f).connect(g).connect(a.destination); env(a, g, t, 0.12, 0.001, 0.012); n.start(t); n.stop(t + 0.02); },
+    /* м'який «поп» — додано в список */
+    pop(a, t) { const o = a.createOscillator(), g = a.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(520, t); o.frequency.exponentialRampToValueAtTime(1180, t + 0.07); o.connect(g).connect(a.destination); env(a, g, t, 0.16, 0.005, 0.11); o.start(t); o.stop(t + 0.14); },
+    /* «тю!» — «т» (шум) + «ю» (ковзання тону вниз через формантний фільтр) + іскорки */
+    tyu(a, t) {
+      const n = noise(a, 0.03), hf = a.createBiquadFilter(), ng = a.createGain(); hf.type = 'highpass'; hf.frequency.value = 3500; n.connect(hf).connect(ng).connect(a.destination); env(a, ng, t, 0.18, 0.002, 0.025); n.start(t); n.stop(t + 0.04);
+      const o = a.createOscillator(), f1 = a.createBiquadFilter(), f2 = a.createBiquadFilter(), g = a.createGain(), v = a.createOscillator(), vg = a.createGain();
+      o.type = 'sawtooth'; const t1 = t + 0.03;
+      o.frequency.setValueAtTime(620, t1); o.frequency.exponentialRampToValueAtTime(330, t1 + 0.26);
+      v.frequency.value = 9; vg.gain.value = 14; v.connect(vg).connect(o.frequency);
+      f1.type = 'bandpass'; f1.Q.value = 6; f1.frequency.setValueAtTime(2300, t1); f1.frequency.exponentialRampToValueAtTime(850, t1 + 0.24);
+      f2.type = 'lowpass'; f2.frequency.value = 3200;
+      o.connect(f1).connect(f2).connect(g).connect(a.destination);
+      g.gain.setValueAtTime(0.0001, t1); g.gain.exponentialRampToValueAtTime(0.5, t1 + 0.02); g.gain.setValueAtTime(0.5, t1 + 0.16); g.gain.exponentialRampToValueAtTime(0.0001, t1 + 0.3);
+      o.start(t1); v.start(t1); o.stop(t1 + 0.32); v.stop(t1 + 0.32);
+      [1568, 2093, 2637].forEach((fr, i) => { const s = a.createOscillator(), sg = a.createGain(), ts = t1 + 0.26 + i * 0.06; s.type = 'sine'; s.frequency.value = fr; s.connect(sg).connect(a.destination); env(a, sg, ts, 0.07, 0.004, 0.22); s.start(ts); s.stop(ts + 0.25); });
+    }
+  };
+  window.TyuSound = {
+    play(name, force) { if (!force && !soundOn()) return; const a = ac(); if (!a || !SOUNDS[name]) return; try { SOUNDS[name](a, a.currentTime + 0.01); } catch (e) {} },
+    on: soundOn,
+    set(v) { if (localStorage.getItem('lists.sound') === null) localStorage.setItem('lists.sound', 'true'); localStorage.setItem('lists.sound', JSON.stringify(!!v)); }
+  };
+
   const FILE = 'tyuisho.json';
   const PREFIXES = ['lists.'];
   /* кеші та ключі — не синхронізуємо */

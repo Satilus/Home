@@ -368,7 +368,7 @@ function setStatus(id, next, ep){
   undoSnap = JSON.stringify(items);
   if (next === 'watched' && it.status !== 'watched') { it.prev = it.status; it.watchedAt = Date.now(); }
   it.status = next; if (ep != null) it.ep = ep;
-  save(); render(); toast(`«${it.title}» → ${LABEL[next]}`);
+  save(); render(); toast(`«${it.title}» → ${LABEL[next]}`); window.TyuSound && TyuSound.play('click');
   if (!$('#ov').hidden && $('#ov').dataset.id === id) openSheet(id);
 }
 const unwatch = id => { const it = items.find(i => i.id === id); setStatus(id, it.prev && it.prev !== 'watched' ? it.prev : 'planned'); };
@@ -711,7 +711,7 @@ function colAdd(n){
   const it = { id: 'u' + Date.now().toString(36), type: 'movie', status: 'planned', title: r.p.title, orig: r.p.orig || r.p.title, year: r.p.year, imdb: '', overview: '' };
   if (r.p.wt) it.wt = r.p.wt;
   items.unshift(it); if (r.p.poster) { meta[it.id] = { poster: r.p.poster, t: 0 }; saveMeta(); }
-  save(); render(); toast(`«${it.title}» додано в «Планую»`); openCol(colOpen.k);
+  save(); render(); toast(`«${it.title}» додано в «Планую»`); window.TyuSound && TyuSound.play('pop'); openCol(colOpen.k);
 }
 const colBlock = it => { const m = meta[it.id] || {}; const list = [];
   if (m.col && m.col.k) list.push({ k: m.col.k, l: 'Франшиза: ' + m.col.n }); (m.dir || []).forEach(d => list.push({ k: d.k, l: 'Режисер: ' + d.n }));
@@ -795,6 +795,7 @@ function markUpTo(k){
   toast(`Відмічено до серії ${n} (сезон ${s})`);
 }
 function toggleEp(k){
+  window.TyuSound && TyuSound.play('tick');
   const id = $('#ov').dataset.id, it = items.find(i => i.id === id), data = epCache[id]; if (!it || !data) return;
   const seen = new Set(it.seen || []); if (seen.has(k)) seen.delete(k); else seen.add(k); it.seen = [...seen];
   if (!applySeen(it, data)) paintSeasons(id);
@@ -874,7 +875,7 @@ $('#sheet').addEventListener('click', async e => {
   const id = $('#ov').dataset.id, it = items.find(i => i.id === id);
   if (b.dataset.close !== undefined) closeSheet();
   else if (b.dataset.set) { if (it && it.status !== b.dataset.set) setStatus(id, b.dataset.set); }
-  else if (b.dataset.pep && it) { const n = Number(b.dataset.pep); it.pep = it.pep === n ? 0 : n; save();
+  else if (b.dataset.pep && it) { const n = Number(b.dataset.pep); it.pep = it.pep === n ? 0 : n; save(); window.TyuSound && TyuSound.play(it.pep === 5 ? 'tyu' : 'tick');
     b.parentNode.querySelectorAll('button').forEach(x => { const k = Number(x.dataset.pep); x.classList.toggle('on', (it.pep || 0) >= k); x.setAttribute('aria-pressed', it.pep === k); });
     const h = b.closest('.box').querySelector('h3'); if (h) h.textContent = 'Мій рейтинг' + (it.pep === 5 ? ' · вогонь!' : it.pep ? ' · ' + it.pep + ' з 5' : '');
     document.querySelectorAll(`[data-r="${CSS.escape(id)}"]`).forEach(el => { el.innerHTML = STAR + esc(ratingOf(it).v) + (it.pep ? `<span class="mine" title="Мій рейтинг"><span class="peps">${'🌶️'.repeat(Math.min(it.pep, 4)) + (it.pep === 5 ? '🔥' : '')}</span></span>` : ''); }); }
@@ -894,7 +895,7 @@ $('#sheet').addEventListener('click', async e => {
   else if (b.dataset.sim !== undefined && it) { const x = (moreCache[id] || {}).similar || [], sm = x[Number(b.dataset.sim)]; if (!sm) return;
     const nid = 'u' + Date.now().toString(36); items.unshift({ id: nid, type: sm.type, status: 'planned', title: sm.title, orig: sm.orig, year: sm.year, imdb: '', overview: '' });
     if (sm.poster) { meta[nid] = { poster: sm.poster, t: 0 }; saveMeta(); }
-    undoSnap = null; save(); render(); b.disabled = true; b.textContent = '✓'; toast(`«${sm.title}» додано в «Планую»`); }
+    undoSnap = null; save(); render(); b.disabled = true; b.textContent = '✓'; toast(`«${sm.title}» додано в «Планую»`); window.TyuSound && TyuSound.play('pop'); }
   else if (b.dataset.shot !== undefined) { const x = extrasCache[id]; if (x) openLb(x.shots, Number(b.dataset.shot)); }
   else if (b.dataset.add) addFound(b.dataset.add);
   else if (b.dataset.savekey !== undefined) { tmdbKey = $('#keyIn').value.trim(); store.set('lists.tmdb', tmdbKey); meta = {}; saveMeta(); closeSheet(); render(); toast(tmdbKey ? 'Ключ TMDB збережено' : 'Ключ видалено'); }
@@ -955,7 +956,7 @@ function addFound(i){
   if (items.some(x => x.type === it.type && ((it.tvm && x.tvm === it.tvm) || (it.ani && x.ani === it.ani) || (normT(x.title) === normT(it.title) && yearOf(x.year) === yearOf(it.year))))) { toast(`«${f.title}» уже є в списку`); return; }
   if (f.poster) meta[it.id] = { poster: f.poster, t: 0 };
   undoSnap = null;
-  items.unshift(it); ui.status = 'planned'; save(); closeSheet(); render(); toast(`«${f.title}» додано в «Планую»`);
+  items.unshift(it); ui.status = 'planned'; save(); closeSheet(); render(); toast(`«${f.title}» додано в «Планую»`); window.TyuSound && TyuSound.play('pop');
 }
 
 render();

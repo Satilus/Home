@@ -286,7 +286,7 @@ document.addEventListener('click', e => {
     if (n.tvm) it.tvm = n.tvm;
     const all = store.get('lists.items', []) || []; all.unshift(it); store.set('lists.items', all); items.unshift(it);
     if (n.poster) { const m = store.get('lists.meta', {}); m[it.id] = { poster: n.poster, t: 0 }; store.set('lists.meta', m); meta[it.id] = m[it.id]; }
-    b.disabled = true; b.textContent = '✓'; toast(`«${n.title}» додано в «Планую»`); renderTop($('#quote').firstChild.textContent); renderPick();
+    b.disabled = true; b.textContent = '✓'; toast(`«${n.title}» додано в «Планую»`); window.TyuSound && TyuSound.play('pop'); renderTop($('#quote').firstChild.textContent); renderPick();
   }
 });
 
@@ -443,6 +443,9 @@ function settingsSheet(){
   const key = store.get('lists.tmdb', '');
   const sh = hSheet(`<div class="wz-top"><span style="font-size:17px;font-weight:700">Налаштування</span><button class="done" data-hx>Готово</button></div>
     <div class="set"><h3>Тема оформлення</h3><div class="themes" id="themes">${themesHTML()}</div></div>
+    <div class="set"><h3>Звуки</h3>
+      <label class="sw"><span>Звуки дій<small>Клацання проектора, «тю!» на вогник, «поп» при додаванні. Мовчать у беззвучному режимі iPhone.</small></span><input type="checkbox" id="sndOn" ${window.TyuSound && TyuSound.on() ? 'checked' : ''}><i></i></label>
+      <div class="btns"><button class="btn" data-snd="click">▶︎ Клац</button><button class="btn" data-snd="tyu">▶︎ Тю! 🔥</button><button class="btn" data-snd="pop">▶︎ Поп</button></div></div>
     <div class="set"><h3>Ключ TMDB (необов'язково)</h3>
       <p>Без ключа постери й описи беруться з TVmaze, AniList і Вікіпедії. З ключем — описи українською, кращі постери, фільми в прокаті, «Де дивитися» й схожі фільми. Ключ зберігається тільки в цьому браузері й не синхронізується.</p>
       <input id="keyIn" type="password" autocomplete="off" placeholder="API Key (v3)" value="${esc(key)}" aria-label="Ключ TMDB">
@@ -450,7 +453,9 @@ function settingsSheet(){
     <div class="btns"><button class="btn go" data-savekey>Зберегти</button>${key ? '<button class="btn" data-delkey>Видалити ключ</button>' : ''}</div>
     <div class="set" id="pushSet"><h3>Сповіщення про нові серії</h3><p>Перевіряю…</p></div>`, 'Налаштування');
   paintPush(sh);
+  sh.onchange = e => { if (e.target.id === 'sndOn') { TyuSound.set(e.target.checked); if (e.target.checked) TyuSound.play('click'); toast(e.target.checked ? 'Звуки ввімкнено' : 'Звуки вимкнено'); } };
   sh.onclick = e => {
+    const sb = e.target.closest('[data-snd]'); if (sb) { TyuSound.play(sb.dataset.snd, true); return; }
     const tb = e.target.closest('[data-theme-pick]');
     if (tb) { window.TyuTheme.set(tb.dataset.themePick); sh.querySelector('#themes').innerHTML = themesHTML(); toast('Тема: ' + tb.querySelector('b').textContent); return; }
     const pb = e.target.closest('[data-push]');
