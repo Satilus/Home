@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="theme-color" content="#E0261C">
-<script src="shared.js?v=11"></script>
+<script src="shared.js?v=12"></script>
 <style>
 :root{color-scheme:light dark;
   --bg:#F2F2F7;--card:#FFFFFF;--ink:#000;--ink2:#3A3A3C;--muted:#6C6C70;--sep:#D1D1D6;--seg:#E3E3E8;--segOn:#FFFFFF;--fill:#EFEFF4;
@@ -73,8 +73,9 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .sheet.full{height:calc(100vh - 10px - env(safe-area-inset-top));height:calc(100dvh - 10px - env(safe-area-inset-top));max-height:none;
   background:color-mix(in srgb,var(--sheet) 38%,transparent)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border-color:rgba(255,255,255,.18)!important}
 .ov-bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:radial-gradient(120% 80% at 30% 10%,var(--fb),transparent 70%),var(--bg);animation:ovIn .45s ease both}
-.ov-bg canvas{position:absolute;inset:-6%;width:112%;height:112%;opacity:0;transition:opacity .4s ease;transform:translateZ(0)}
-.ov-bg canvas.ok{opacity:.95}
+.ov-small{position:absolute;left:-6%;top:-6%;width:28%;height:28%;transform:scale(4.3) translateZ(0);transform-origin:0 0;overflow:hidden}
+.ov-small img{width:100%;height:100%;object-fit:cover;filter:blur(9px) saturate(1.7);transform:scale(1.2);opacity:0;transition:opacity .4s ease}
+.ov-small img.ok{opacity:.95}
 .ov-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),color-mix(in srgb,var(--bg) 45%,transparent) 70%)}
 @keyframes ovIn{from{opacity:0}}
 .overlay > .sheet{z-index:1}
@@ -181,8 +182,8 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .lb .cnt{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;font-size:13px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
-<link rel="stylesheet" href="glass.css?v=11">
-<script src="motion.js?v=11" defer></script>
+<link rel="stylesheet" href="glass.css?v=12">
+<script src="motion.js?v=12" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -781,12 +782,8 @@ function setPosterBg(src, fallback){
   bg.dataset.src = src || '';
   bg.innerHTML = '';
   if (!src) return;
-  /* дешеве «розмиття»: постер зменшується до 36×54 і розтягується на весь екран */
-  const im = new Image(); im.referrerPolicy = 'no-referrer';
-  im.onload = () => { if (bg.dataset.src !== src) return; const c = document.createElement('canvas'); c.width = 36; c.height = 54;
-    try { const x = c.getContext('2d'); x.filter = 'blur(2px)'; x.drawImage(im, -2, -2, 40, 58); } catch(e) { return; }
-    bg.appendChild(c); requestAnimationFrame(() => c.classList.add('ok')); };
-  im.src = src;
+  /* плавне розмиття: маленька копія (¼ екрана) розмивається й збільшується — без квадратиків і майже без навантаження */
+  bg.innerHTML = `<div class="ov-small"><img alt="" referrerpolicy="no-referrer" src="${esc(src)}" onload="this.classList.add('ok')" onerror="this.remove()"></div>`;
 }
 const clearPosterBg = () => { const bg = document.getElementById('ovBgImg'); if (bg) bg.remove(); };
 
