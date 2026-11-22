@@ -12,8 +12,8 @@
 <meta name="theme-color" content="#E0261C">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<script src="shared.js?v=16"></script>
-<script src="phrases.js?v=16"></script>
+<script src="shared.js?v=17"></script>
+<script src="phrases.js?v=17"></script>
 <style>
 :root{color-scheme:light dark;
   --bg:#F2F2F7;--card:#FFFFFF;--ink:#000;--ink2:#3A3A3C;--muted:#6C6C70;--sep:#D1D1D6;--seg:#E3E3E8;--segOn:#FFFFFF;--fill:#EFEFF4;
@@ -30,7 +30,8 @@ a{color:inherit}
 .wrap{max-width:1080px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(110px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
 header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px}
 .eyebrow{font-size:13px;font-weight:600;color:var(--muted)}
-h1{margin:0;font-size:clamp(26px,7.6vw,34px);font-weight:800;letter-spacing:-.02em;line-height:1.1;white-space:nowrap}
+h1{margin:0;font-size:clamp(24px,7.4vw,34px);font-weight:800;letter-spacing:-.02em;line-height:1.08}
+header > div:first-child{flex:1;min-width:0}
 h2.sec{margin:26px 0 10px;font-size:22px;font-weight:800;letter-spacing:-.01em;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 h2.sec a{font-size:15px;font-weight:600;color:var(--tint);text-decoration:none}
 .quote{position:relative;margin:4px 0 0;padding:16px 18px;border-radius:16px;background:var(--card);font-size:17px;line-height:1.45;font-weight:600}
@@ -239,8 +240,8 @@ h2.sec a{font-size:15px;font-weight:600;color:var(--tint);text-decoration:none}
   #splash,.th-silent,.th-vhs,.th-cosmos .ring{animation:none!important}
 }
 </style>
-<link rel="stylesheet" href="glass.css?v=16">
-<script src="motion.js?v=16" defer></script>
+<link rel="stylesheet" href="glass.css?v=17">
+<script src="motion.js?v=17" defer></script>
 </head>
 <body>
 <div class="wrap" id="app">
@@ -282,6 +283,8 @@ const tint = id => { let h=0; for (const c of String(id)) h=(h*31+c.charCodeAt(0
 const initials = t => String(t||'').split(/[\s:]+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
 const isRussian = x => /(^|\W)(RU|ru|Russian|Russia|рос)/.test([x.origin_country, x.original_language, x.language, x.country].flat().filter(Boolean).join(' '));
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const plural = (n, one, few, many) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? many : b === 1 ? one : b >= 2 && b <= 4 ? few : many; };
+
 
 /* ---------- фраза без повторів ---------- */
 const PH = window.TYUISHO_PHRASES || ['Час для хорошого кіно.'];
@@ -664,7 +667,7 @@ function yearSheet(){
   hSheet(`<div class="wz-top"><span class="lbl">${st.dated ? 'Переглянуто цього року' : 'Усе переглянуте (дати перегляду з\'явилися нещодавно)'}</span><button class="done" data-hx>Готово</button></div>
     <div class="yr"><div class="yr-big">${st.Y}</div><div class="yr-sub">мій рік у кіно</div>
       <div class="yr-num"><b>${st.list.length}</b><span>переглянуто</span></div>
-      <div class="yr-grid"><span><b>${st.movies}</b>фільмів</span><span><b>${st.series}</b>серіалів</span><span><b>${st.anime}</b>аніме</span>${st.hours ? `<span><b>${st.hours}</b>год у фільмах</span>` : ''}</div>
+      <div class="yr-grid"><span><b>${st.movies}</b>${plural(st.movies,'фільм','фільми','фільмів')}</span><span><b>${st.series}</b>${plural(st.series,'серіал','серіали','серіалів')}</span><span><b>${st.anime}</b>аніме</span>${st.hours ? `<span><b>${st.hours}</b>${plural(st.hours,'година','години','годин')} у фільмах</span>` : ''}</div>
       ${st.top.length ? `<div class="yr-line">Улюблені жанри: <b>${esc(st.top.join(', '))}</b></div>` : ''}
       ${st.avg ? `<div class="yr-line">Середня оцінка: <b>${st.avg.toFixed(1)} 🌶️</b></div>` : ''}
       ${st.fire.length ? `<div class="yr-line">З вогником 🔥</div><div class="row">${st.fire.map(it => `<a class="card" href="kino.html#open=${encodeURIComponent(it.id)}">${posterHTML(it.id, it.title, posterOf(it))}<span class="ct">${esc(it.title)}</span></a>`).join('')}</div>` : ''}
@@ -681,7 +684,7 @@ async function shareYear(st){
   x.font = F(800, 150); x.fillText(String(st.Y), 90, 160); x.font = F(600, 52); x.fillText('мій рік у кіно', 90, 330);
   x.font = F(800, 260); x.fillText(String(st.list.length), 90, 430); x.font = F(600, 46); x.fillText('переглянуто', 96, 700);
   x.font = F(600, 44); let y = 800;
-  [`🎬 ${st.movies} фільмів   📺 ${st.series} серіалів   ✨ ${st.anime} аніме`, st.top.length ? `Улюблене: ${st.top.join(', ')}` : '', st.avg ? `Середня оцінка: ${st.avg.toFixed(1)} 🌶️` : ''].filter(Boolean).forEach(l => { x.fillText(l, 90, y, 900); y += 72; });
+  [`🎬 ${st.movies} ${plural(st.movies,'фільм','фільми','фільмів')}   📺 ${st.series} ${plural(st.series,'серіал','серіали','серіалів')}   ✨ ${st.anime} аніме`, st.top.length ? `Улюблене: ${st.top.join(', ')}` : '', st.avg ? `Середня оцінка: ${st.avg.toFixed(1)} 🌶️` : ''].filter(Boolean).forEach(l => { x.fillText(l, 90, y, 900); y += 72; });
   if (st.fire.length) { x.font = F(700, 44); x.fillText('🔥 Вогонь:', 90, y + 20); x.font = F(500, 40); st.fire.slice(0, 4).forEach((it, i) => x.fillText('• ' + it.title, 110, y + 90 + i * 58, 880)); }
   const blob = await new Promise(r => c.toBlob(r, 'image/png'));
   const file = new File([blob], `tyu-i-sho-${st.Y}.png`, { type: 'image/png' });

@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="theme-color" content="#E0261C">
-<script src="shared.js?v=16"></script>
+<script src="shared.js?v=17"></script>
 <style>
 :root{color-scheme:light dark;
   --bg:#F2F2F7;--card:#FFFFFF;--ink:#000;--ink2:#3A3A3C;--muted:#6C6C70;--sep:#D1D1D6;--seg:#E3E3E8;--segOn:#FFFFFF;--fill:#EFEFF4;
@@ -236,8 +236,8 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .lb .cnt{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;font-size:13px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
-<link rel="stylesheet" href="glass.css?v=16">
-<script src="motion.js?v=16" defer></script>
+<link rel="stylesheet" href="glass.css?v=17">
+<script src="motion.js?v=17" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -394,6 +394,8 @@ const saveMeta = () => store.set('lists.meta', meta);
 /* ---------- джерела даних ---------- */
 const getJSON = async (url, opts) => { const r = await fetch(url, opts); if (!r.ok) throw new Error(r.status); return r.json(); };
 const yearOf = s => String(s||'').slice(0,4);
+const plural = (n, one, few, many) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? many : b === 1 ? one : b >= 2 && b <= 4 ? few : many; };
+
 
 async function fromTMDB(it){
   const kind = it.type === 'movie' ? 'movie' : 'tv';
@@ -572,7 +574,13 @@ function endGest(e){
 }
 addEventListener('pointerup', endGest); addEventListener('pointercancel', e => { if (gest && gest.mode === 'swipe') endGest(e); else if (gest) { clearTimeout(gest.lp); gest = null; } });
 document.addEventListener('click', e => { if (Date.now() - suppressClick < 450 && e.target.closest('#grid')) { e.preventDefault(); e.stopPropagation(); } }, true);
-$('#grid').addEventListener('contextmenu', e => { if (e.target.closest('.open')) e.preventDefault(); });
+$('#grid').addEventListener('contextmenu', e => {
+  const open = e.target.closest('.open'); if (!open) return; e.preventDefault();
+  /* Android/Chrome скасовують дотик при довгому утриманні й шлють contextmenu — відкриваємо меню за ним */
+  if (document.querySelector('.ctx') || (gest && gest.mode === 'swipe')) return;
+  if (gest) { clearTimeout(gest.lp); gest = null; }
+  suppressClick = Date.now(); openMenu(open.closest('.item'), open.dataset.open);
+});
 function ensureSwipeBg(item, id){
   if (item.querySelector('.swbg')) return;
   const it = items.find(i => i.id === id);
@@ -606,8 +614,11 @@ function openMenu(item, id){
   menu.style.top = (below ? r.bottom + 12 : Math.max(12, r.top - mh - 12)) + 'px';
   menu.style.transformOrigin = `${r.left + r.width / 2 - left}px ${below ? 0 : mh}px`;
   requestAnimationFrame(() => m.classList.add('on'));
+  const openedAt = Date.now();
   m.addEventListener('click', e => {
-    const b = e.target.closest('[data-m]'); if (!b) return; const k = b.dataset.m; closeMenu();
+    const b = e.target.closest('[data-m]'); if (!b) return; const k = b.dataset.m;
+    if (Date.now() - openedAt < 500) return;   /* «натискання» від того самого пальця, що відкрив меню */
+    closeMenu();
     if (k === 'x') return;
     if (['watching', 'planned', 'watched'].includes(k)) { if (it.status !== k) setStatus(id, k); }
     else if (k === 'open') openSheet(id);
@@ -1084,7 +1095,7 @@ function openSheet(id){
   const m = meta[id] || {}; const r = ratingOf(it);
   const overview = it.overview || m.ukOverview || m.overview || 'Опис завантажується…';
   const total = it.total || m.episodes;
-  const metaLine = [yearOf(it.year), total ? total + ' серій' : '', m.rt ? (it.type === 'movie' ? Math.floor(m.rt / 60) + ' год ' + (m.rt % 60) + ' хв' : '~' + m.rt + ' хв серія') : ''].filter(Boolean).join(' · ');
+  const metaLine = [yearOf(it.year), total ? total + ' ' + plural(total, 'серія', 'серії', 'серій') : '', m.rt ? (it.type === 'movie' ? Math.floor(m.rt / 60) + ' год ' + (m.rt % 60) + ' хв' : '~' + m.rt + ' хв серія') : ''].filter(Boolean).join(' · ');
   const back = it.prev && it.prev !== 'watched' ? it.prev : 'planned';
   const keepScroll = !$('#ov').hidden && $('#ov').dataset.id === id ? $('#sheet').scrollTop : 0;
   $('#sheet').setAttribute('aria-label', it.title);
