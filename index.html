@@ -83,6 +83,22 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .tabbar nav{display:flex;width:100%;max-width:520px;justify-content:space-around}
 .tabbar a{flex:1;max-width:140px;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:48px;justify-content:center;text-decoration:none;font-size:10px;font-weight:600;color:var(--muted)}
 .tabbar a[aria-current=page]{color:var(--tint)}
+.shots{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.shots button{flex:none;width:min(78%,300px);aspect-ratio:16/9;border-radius:12px;overflow:hidden;border:0;padding:0;background:var(--fill);scroll-snap-align:start}
+.shots img{width:100%;height:100%;object-fit:cover;display:block}
+.cast{display:flex;flex-direction:column}
+.actor{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:.5px solid var(--sep)}
+.actor:last-child{border-bottom:0}
+.actor .ph{width:44px;height:44px;border-radius:22px;flex:none;background:var(--fill);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--muted)}
+.actor .ph img{width:100%;height:100%;object-fit:cover}
+.actor b{font-size:15px;font-weight:600;display:block}
+.actor small{font-size:13px;color:var(--muted)}
+.lb{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center}
+.lb[hidden]{display:none}
+.lb img{max-width:100%;max-height:86vh;object-fit:contain}
+.lb button{position:absolute;border:0;background:rgba(255,255,255,.14);color:#fff;width:44px;height:44px;border-radius:22px;font-size:22px}
+.lb .x{top:calc(14px + env(safe-area-inset-top));right:14px}.lb .pv{left:10px;top:50%}.lb .nx{right:10px;top:50%}
+.lb .cnt{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;font-size:13px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 </head>
@@ -111,6 +127,7 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
   <a href="coins.html"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5.5"></circle><path d="M12 9.5v5M10.3 11h3.4"></path></svg>Нумізматика</a>
   <a href="cameras.html"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H8l1.5-2h5L16 6h2.5A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"></path><circle cx="12" cy="13" r="3.8"></circle></svg>Фотоапарати</a>
 </nav></div>
+<div class="lb" id="lb" hidden role="dialog" aria-label="Кадр"><img id="lbImg" alt=""><button class="x" id="lbX" aria-label="Закрити">×</button><button class="pv" id="lbPv" aria-label="Попередній кадр">‹</button><button class="nx" id="lbNx" aria-label="Наступний кадр">›</button><div class="cnt" id="lbCnt"></div></div>
 <div class="toast" id="toast" role="status" hidden><span id="toastText"></span><button id="toastUndo">Скасувати</button></div>
 
 <script>
@@ -234,24 +251,24 @@ async function fromTMDB(it){
   if (!r) return null;
   let overview = r.overview;
   if (!overview) { try { const en = await getJSON(`https://api.themoviedb.org/3/${kind}/${r.id}?api_key=${encodeURIComponent(tmdbKey)}&language=en-US`); overview = en.overview; } catch(e){} }
-  return { poster: r.poster_path ? 'https://image.tmdb.org/t/p/w342' + r.poster_path : '', rating: r.vote_average ? r.vote_average.toFixed(1) : '', rsrc:'TMDB', overview, origFound: r.original_name || r.original_title, src:'TMDB' };
+  return { poster: r.poster_path ? 'https://image.tmdb.org/t/p/w342' + r.poster_path : '', rating: r.vote_average ? r.vote_average.toFixed(1) : '', rsrc:'TMDB', overview, origFound: r.original_name || r.original_title, src:'TMDB', tmdbId: r.id, tmdbKind: kind };
 }
 async function fromTVmaze(it){
   const s = await getJSON('https://api.tvmaze.com/singlesearch/shows?q=' + encodeURIComponent(it.orig || it.title));
-  return { poster: s.image ? (s.image.medium || s.image.original).replace('http:','https:') : '', rating: s.rating && s.rating.average ? s.rating.average.toFixed(1) : '', rsrc:'TVmaze', overview: stripHtml(s.summary), genres: (s.genres||[]).join(', '), src:'TVmaze' };
+  return { poster: s.image ? (s.image.medium || s.image.original).replace('http:','https:') : '', rating: s.rating && s.rating.average ? s.rating.average.toFixed(1) : '', rsrc:'TVmaze', overview: stripHtml(s.summary), genres: (s.genres||[]).join(', '), src:'TVmaze', tvmazeId: s.id };
 }
 async function fromAniList(it){
-  const query = 'query($s:String){Media(search:$s,type:ANIME){coverImage{large} averageScore episodes genres description(asHtml:false)}}';
+  const query = 'query($s:String){Media(search:$s,type:ANIME){id coverImage{large} averageScore episodes genres description(asHtml:false)}}';
   const d = await getJSON('https://graphql.anilist.co', { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ query, variables:{ s: it.orig || it.title } }) });
   const m = d.data && d.data.Media; if (!m) return null;
-  return { poster: m.coverImage && m.coverImage.large || '', rating: m.averageScore ? (m.averageScore/10).toFixed(1) : '', rsrc:'AniList', overview: stripHtml(m.description), episodes: m.episodes, genres:(m.genres||[]).join(', '), src:'AniList' };
+  return { poster: m.coverImage && m.coverImage.large || '', rating: m.averageScore ? (m.averageScore/10).toFixed(1) : '', rsrc:'AniList', overview: stripHtml(m.description), episodes: m.episodes, genres:(m.genres||[]).join(', '), src:'AniList', anilistId: m.id };
 }
 async function fromWiki(lang, q){
   const url = `https://${lang}.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=1&gsrsearch=${encodeURIComponent(q)}&prop=extracts|pageimages&exintro=1&explaintext=1&exsentences=3&piprop=thumbnail&pithumbsize=500&pilicense=any`;
   const d = await getJSON(url);
   const p = d.query && d.query.pages && Object.values(d.query.pages)[0];
   if (!p) return null;
-  return { poster: p.thumbnail ? p.thumbnail.source : '', overview: p.extract || '', src:'Вікіпедія' };
+  return { poster: p.thumbnail ? p.thumbnail.source : '', overview: p.extract || '', src:'Вікіпедія', wikiTitle: p.title };
 }
 async function loadMeta(it, force){
   if (!force && meta[it.id] && meta[it.id].t > Date.now() - 1000*60*60*24*14) return meta[it.id];
@@ -320,6 +337,79 @@ function setStatus(id, next, ep){
 const unwatch = id => { const it = items.find(i => i.id === id); setStatus(id, it.prev && it.prev !== 'watched' ? it.prev : 'planned'); };
 $('#toastUndo').onclick = () => { if (undoSnap) { items = JSON.parse(undoSnap); undoSnap = null; save(); render(); if (!$('#ov').hidden && $('#ov').dataset.id) openSheet($('#ov').dataset.id); } $('#toast').hidden = true; };
 
+
+/* ---------- кадри та актори ---------- */
+const extrasCache = store.get('lists.extras', {});
+async function loadExtras(it){
+  const c = extrasCache[it.id];
+  if (c && c.t > Date.now() - 1000*60*60*24*30 && (c.shots.length || c.cast.length)) return c;
+  const m = meta[it.id] || {};
+  let shots = [], cast = [], note = '';
+  try {
+    if (tmdbKey) {
+      let id = m.tmdbId, kind = m.tmdbKind || (it.type === 'movie' ? 'movie' : 'tv');
+      if (!id) { const r = await fromTMDB(it); if (r) { id = r.tmdbId; kind = r.tmdbKind; } }
+      if (id) {
+        const k = encodeURIComponent(tmdbKey);
+        const [im, cr] = await Promise.all([
+          getJSON(`https://api.themoviedb.org/3/${kind}/${id}/images?api_key=${k}&include_image_language=null`),
+          getJSON(`https://api.themoviedb.org/3/${kind}/${id}/${kind === 'tv' ? 'aggregate_credits' : 'credits'}?api_key=${k}&language=uk-UA`)
+        ]);
+        shots = (im.backdrops || []).slice(0, 8).map(b => ({ thumb: 'https://image.tmdb.org/t/p/w780' + b.file_path, full: 'https://image.tmdb.org/t/p/w1280' + b.file_path }));
+        cast = (cr.cast || []).slice(0, 8).map(a => ({ name: a.name, role: a.character || (a.roles && a.roles[0] && a.roles[0].character) || '', photo: a.profile_path ? 'https://image.tmdb.org/t/p/w185' + a.profile_path : '' }));
+      }
+    } else if (it.type === 'series') {
+      let id = m.tvmazeId;
+      if (!id) { const r = await fromTVmaze(it); id = r && r.tvmazeId; }
+      if (id) {
+        const [im, cr] = await Promise.all([getJSON(`https://api.tvmaze.com/shows/${id}/images`), getJSON(`https://api.tvmaze.com/shows/${id}/cast`)]);
+        const pick = im.filter(x => x.type === 'background').concat(im.filter(x => x.type === 'banner'));
+        shots = pick.slice(0, 8).map(x => { const r = x.resolutions || {}; const u = (r.medium || r.original || {}).url || ''; return { thumb: u.replace('http:','https:'), full: ((r.original || r.medium || {}).url || u).replace('http:','https:') }; }).filter(x => x.thumb);
+        cast = cr.slice(0, 8).map(a => ({ name: a.person.name, role: a.character && a.character.name || '', photo: a.person.image ? a.person.image.medium.replace('http:','https:') : '' }));
+      }
+    } else if (it.type === 'anime') {
+      const query = 'query($s:String){Media(search:$s,type:ANIME){bannerImage streamingEpisodes{thumbnail} characters(sort:[ROLE,RELEVANCE],perPage:8){edges{node{name{full}} voiceActors(language:JAPANESE,sort:RELEVANCE){name{full} image{medium}}}}}}';
+      const d = await getJSON('https://graphql.anilist.co', { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ query, variables:{ s: it.orig || it.title } }) });
+      const md = d.data && d.data.Media;
+      if (md) {
+        shots = [md.bannerImage].filter(Boolean).concat((md.streamingEpisodes || []).map(e => e.thumbnail)).filter(Boolean).slice(0, 8).map(u => ({ thumb: u, full: u }));
+        cast = (md.characters.edges || []).map(e => { const va = e.voiceActors && e.voiceActors[0]; return { name: va ? va.name.full : e.node.name.full, role: va ? 'озвучує ' + e.node.name.full : '', photo: va && va.image ? va.image.medium : '' }; });
+      }
+    } else {
+      let title = m.wikiTitle;
+      if (!title) { const w = await fromWiki('en', `${it.orig || it.title} ${yearOf(it.year)} film`); title = w && w.wikiTitle; }
+      if (title) {
+        const d = await getJSON(`https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&origin=*&sites=enwiki&titles=${encodeURIComponent(title)}&props=claims`);
+        const ent = Object.values(d.entities || {})[0];
+        const ids = ((ent && ent.claims && ent.claims.P161) || []).slice(0, 8).map(cl => cl.mainsnak.datavalue && cl.mainsnak.datavalue.value.id).filter(Boolean);
+        if (ids.length) {
+          const l = await getJSON(`https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&origin=*&ids=${ids.join('|')}&props=labels&languages=uk|en`);
+          cast = ids.map(q => { const e = l.entities[q]; const lb = e && e.labels && (e.labels.uk || e.labels.en); return { name: lb ? lb.value : '', role: '', photo: '' }; }).filter(a => a.name);
+        }
+      }
+      note = 'Кадри з фільмів з\'являться, якщо додати ключ TMDB у налаштуваннях (⚙).';
+    }
+  } catch(e) {}
+  const res = { shots, cast, note, t: Date.now() };
+  extrasCache[it.id] = res; store.set('lists.extras', extrasCache);
+  return res;
+}
+function extrasHTML(x){
+  if (!x) return '<div class="box"><h3>Кадри та актори</h3><p class="hint">Завантажую…</p></div>';
+  let h = '';
+  if (x.shots.length) h += `<div><div class="lbl" style="padding:0 4px 8px">Кадри</div><div class="shots">${x.shots.map((sh, i) => `<button data-shot="${i}" aria-label="Кадр ${i+1}"><img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(sh.thumb)}" onerror="this.parentNode.remove()"></button>`).join('')}</div></div>`;
+  else if (x.note) h += `<p class="hint" style="padding:0 4px;margin:0">${esc(x.note)}</p>`;
+  if (x.cast.length) h += `<div class="box"><h3>Актори</h3><div class="cast">${x.cast.map(a => `<div class="actor"><span class="ph">${a.photo ? `<img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(a.photo)}" onerror="this.remove()">` : esc(initials(a.name))}</span><span><b>${esc(a.name)}</b>${a.role ? `<small>${esc(a.role)}</small>` : ''}</span></div>`).join('')}</div></div>`;
+  return h || '<p class="hint" style="padding:0 4px;margin:0">Кадрів і акторів для цієї назви не знайшлося.</p>';
+}
+let lbList = [], lbIdx = 0;
+function openLb(list, i){ lbList = list; lbIdx = i; showLb(); $('#lb').hidden = false; }
+function showLb(){ $('#lbImg').src = lbList[lbIdx].full; $('#lbCnt').textContent = `${lbIdx + 1} / ${lbList.length}`; $('#lbPv').hidden = $('#lbNx').hidden = lbList.length < 2; }
+$('#lbX').onclick = () => { $('#lb').hidden = true; };
+$('#lbPv').onclick = () => { lbIdx = (lbIdx - 1 + lbList.length) % lbList.length; showLb(); };
+$('#lbNx').onclick = () => { lbIdx = (lbIdx + 1) % lbList.length; showLb(); };
+$('#lb').addEventListener('click', e => { if (e.target.id === 'lb') $('#lb').hidden = true; });
+
 /* ---------- картка ---------- */
 function openSheet(id){
   const it = items.find(i => i.id === id); if (!it) return;
@@ -341,6 +431,7 @@ function openSheet(id){
       </div>
     </div>
     <div class="box"><h3>Короткий зміст</h3><p>${esc(overview)}</p></div>
+    <div id="extras">${extrasHTML(extrasCache[id] && (extrasCache[id].shots.length || extrasCache[id].cast.length) ? extrasCache[id] : null)}</div>
     ${it.status === 'watching' && total ? `<div class="row box" style="padding:8px 8px 8px 16px"><span>Серія ${it.ep||0} з ${total}</span><div class="stepper"><button data-ep="-1" aria-label="Мінус серія">−</button><button data-ep="1" aria-label="Плюс серія">+</button></div></div>` : ''}
     <div><div class="lbl" style="padding:0 4px 8px">Статус</div>
       <div class="seg" role="group" aria-label="Статус" style="max-width:none">${['watching','planned','watched'].map(k => `<button aria-pressed="${it.status===k}" data-set="${k}">${LABEL[k]}</button>`).join('')}</div></div>
@@ -349,10 +440,11 @@ function openSheet(id){
     <button class="big del" data-remove style="color:var(--tint)">Видалити зі списку</button>`;
   $('#ov').dataset.id = id; $('#ov').hidden = false;
   if (!meta[id]) want(it);
+  loadExtras(it).then(x => { if ($('#ov').dataset.id === id && $('#extras')) $('#extras').innerHTML = extrasHTML(x); });
 }
 const closeSheet = () => { $('#ov').hidden = true; $('#ov').dataset.id = ''; };
 $('#ovBg').onclick = closeSheet;
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#ov').hidden) closeSheet(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (!$('#lb').hidden) $('#lb').hidden = true; else if (!$('#ov').hidden) closeSheet(); } else if (!$('#lb').hidden && e.key === 'ArrowRight') $('#lbNx').click(); else if (!$('#lb').hidden && e.key === 'ArrowLeft') $('#lbPv').click(); });
 $('#sheet').addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
   const id = $('#ov').dataset.id, it = items.find(i => i.id === id);
@@ -363,6 +455,7 @@ $('#sheet').addEventListener('click', async e => {
   else if (b.dataset.ep && it) { const total = it.total || (meta[id]||{}).episodes; const n = Math.max(0, (it.ep||0) + Number(b.dataset.ep)); if (total && n >= total) { it.total = total; setStatus(id, 'watched', total); } else setStatus(id, 'watching', n); }
   else if (b.dataset.refresh !== undefined && it) { b.textContent = 'Оновлюю…'; await loadMeta(it, true); render(); openSheet(id); }
   else if (b.dataset.remove !== undefined && it) { undoSnap = JSON.stringify(items); items = items.filter(i => i.id !== id); removed.push(id); store.set('lists.removed', removed); save(); closeSheet(); render(); toast(`«${it.title}» видалено`); }
+  else if (b.dataset.shot !== undefined) { const x = extrasCache[id]; if (x) openLb(x.shots, Number(b.dataset.shot)); }
   else if (b.dataset.add) addFound(b.dataset.add);
   else if (b.dataset.savekey !== undefined) { tmdbKey = $('#keyIn').value.trim(); store.set('lists.tmdb', tmdbKey); meta = {}; saveMeta(); closeSheet(); render(); toast(tmdbKey ? 'Ключ TMDB збережено' : 'Ключ видалено'); }
 });
