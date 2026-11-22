@@ -142,16 +142,13 @@ const SEED = [
  ['s17','series','planned','Пантеон','Pantheon','2022','8.3',{},'Дівчина отримує повідомлення від померлого батька, чию свідомість завантажили в хмару.'],
  ['s18','series','planned','Локі','Loki','2021','8.2',{},'Бог підступності потрапляє до Управління часових змін і мусить виправляти порушення в потоці часу.'],
  ['s19','series','planned','Повільні коні','Slow Horses','2022','8.2',{},'Агенти MI5, що провалили кар\'єру, відбувають заслання в Слау-Хаусі — і раз у раз потрапляють у справжні операції.'],
- ['s20','series','planned','Донька','Дочь','2021','8.2',{},''],
  ['s21','series','planned','Перехідний вік','Adolescence','2025','8.1',{},'13-річного хлопця заарештовують за вбивство однокласниці, і родина намагається зрозуміти, як таке могло статися.'],
  ['s22','series','planned','Силос','Silo','2023','8.1',{},'Тисячі людей живуть у глибокому підземному сховищі, не знаючи, хто його збудував і що насправді на поверхні.'],
  ['s23','series','planned','Джентльмени','The Gentlemen','2024','8.1',{},'Аристократ успадковує родовий маєток і дізнається, що на його землі працює наркоімперія.'],
- ['s24','series','planned','Слово пацана','The Boy\'s Word: Blood on the Asphalt','2023','8.0',{},'Казань кінця 1980-х: підлітки потрапляють у світ вуличних угруповань із жорсткими неписаними правилами.'],
  ['s25','series','planned','Гра в кальмара','Squid Game','2021','8.0',{},'Сотні людей у боргах грають у дитячі ігри за величезний приз, а програш у них означає смерть.'],
  ['s26','series','planned','Венздей','Wednesday','2022','8.0',{},'Венздей Аддамс вступає до академії «Невермор», розслідує серію вбивств і вчиться опановувати свої здібності.'],
  ['s27','series','planned','Біф','Beef','2023','8.0',{},'Дрібна сутичка двох незнайомців на парковці переростає у ворожнечу, яка руйнує обидва їхні життя.'],
  ['s28','series','planned','Покерфейс','Poker Face','2023','7.9',{},'Жінка, яка безпомилково розпізнає брехню, мандрує Америкою й мимоволі розкриває вбивства.'],
- ['s29','series','planned','Домер','Домер','2022','7.9',{},''],
  ['s30','series','planned','Білий лотос','The White Lotus','2021','7.9',{},'Гості й персонал розкішного курорту за тиждень відпочинку показують свої найгірші сторони.'],
  ['m1','movie','watched','Дюна: Частина друга','Dune: Part Two','2024','',{},'Пол Атрід об\'єднується з фрименами, щоб помститися за родину, і мусить обирати між коханням і долею всесвіту.'],
  ['m2','movie','watched','Оппенгеймер','Oppenheimer','2023','',{},'Історія фізика Роберта Оппенгеймера, який очолив створення атомної бомби, і того, чим це обернулося для нього самого.'],
@@ -160,7 +157,13 @@ const SEED = [
  ['m5','movie','planned','Сім самураїв','Seven Samurai','1954','',{},'Бідне село наймає сімох ронінів, щоб захиститися від бандитів, які щороку грабують урожай.']
 ].map(([id,type,status,title,orig,year,imdb,x,overview]) => ({ id, type, status, title, orig, year, imdb, overview, ep:x.ep, total:x.total }));
 
-let items = store.get('lists.items', null) || SEED;
+// ПРАВИЛО: жодних російських фільмів чи серіалів.
+const BANNED_IDS = ['s20','s24','s29'];
+const isRussian = x => {
+  const t = [x.origin_country, x.original_language, x.language, x.country, x.description].flat().filter(Boolean).join(' ');
+  return /(^|\W)(RU|ru|Russian|Russia|рос)/.test(t);
+};
+let items = (store.get('lists.items', null) || SEED).filter(i => !BANNED_IDS.includes(i.id) && !i.ru);
 let meta = store.get('lists.meta', {});
 let ui = Object.assign({ type:'series', status:'planned' }, store.get('lists.ui', {}));
 let tmdbKey = store.get('lists.tmdb', '');
@@ -176,8 +179,8 @@ async function fromTMDB(it){
   const q = encodeURIComponent(it.orig || it.title);
   const base = `https://api.themoviedb.org/3/search/${kind}?api_key=${encodeURIComponent(tmdbKey)}&query=${q}&language=uk-UA`;
   const d = await getJSON(base + (it.year ? (kind==='movie' ? '&year=' : '&first_air_date_year=') + yearOf(it.year) : ''));
-  let r = d.results && d.results[0];
-  if (!r) { const d2 = await getJSON(base); r = d2.results && d2.results[0]; }
+  let r = (d.results||[]).find(x => !isRussian(x));
+  if (!r) { const d2 = await getJSON(base); r = (d2.results||[]).find(x => !isRussian(x)); }
   if (!r) return null;
   let overview = r.overview;
   if (!overview) { try { const en = await getJSON(`https://api.themoviedb.org/3/${kind}/${r.id}?api_key=${encodeURIComponent(tmdbKey)}&language=en-US`); overview = en.overview; } catch(e){} }
@@ -345,17 +348,17 @@ async function search(q){
     if (tmdbKey) {
       const kind = ui.type === 'movie' ? 'movie' : 'tv';
       const d = await getJSON(`https://api.themoviedb.org/3/search/${kind}?api_key=${encodeURIComponent(tmdbKey)}&query=${encodeURIComponent(q)}&language=uk-UA`);
-      found = (d.results||[]).slice(0,8).map(r => ({ title: r.title || r.name, orig: r.original_title || r.original_name, year: yearOf(r.release_date || r.first_air_date), poster: r.poster_path ? 'https://image.tmdb.org/t/p/w154' + r.poster_path : '' }));
+      found = (d.results||[]).filter(r => !isRussian(r)).slice(0,8).map(r => ({ title: r.title || r.name, orig: r.original_title || r.original_name, year: yearOf(r.release_date || r.first_air_date), poster: r.poster_path ? 'https://image.tmdb.org/t/p/w154' + r.poster_path : '' }));
     } else if (ui.type === 'series') {
       const d = await getJSON('https://api.tvmaze.com/search/shows?q=' + encodeURIComponent(q));
-      found = d.slice(0,8).map(x => ({ title: x.show.name, orig: x.show.name, year: yearOf(x.show.premiered), poster: x.show.image ? x.show.image.medium.replace('http:','https:') : '' }));
+      found = d.filter(x => !isRussian({ language: x.show.language, country: (x.show.network||x.show.webChannel||{}).country && (x.show.network||x.show.webChannel).country.code })).slice(0,8).map(x => ({ title: x.show.name, orig: x.show.name, year: yearOf(x.show.premiered), poster: x.show.image ? x.show.image.medium.replace('http:','https:') : '' }));
     } else if (ui.type === 'anime') {
       const query = 'query($s:String){Page(perPage:8){media(search:$s,type:ANIME){title{romaji english} startDate{year} coverImage{medium}}}}';
       const d = await getJSON('https://graphql.anilist.co', { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ query, variables:{ s:q } }) });
       found = d.data.Page.media.map(m => ({ title: m.title.english || m.title.romaji, orig: m.title.romaji, year: String(m.startDate.year||''), poster: m.coverImage.medium }));
     } else {
       const d = await getJSON(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=8&gsrsearch=${encodeURIComponent(q + ' film')}&prop=pageimages|description&piprop=thumbnail&pithumbsize=160&pilicense=any`);
-      found = Object.values((d.query||{}).pages||{}).sort((a,b)=>a.index-b.index).map(p => ({ title: p.title.replace(/ \(.*film\)$/,''), orig: p.title.replace(/ \(.*film\)$/,''), year: ((p.title.match(/\((\d{4})/)||[])[1]) || ((p.description||'').match(/\d{4}/)||[''])[0], poster: p.thumbnail ? p.thumbnail.source : '' }));
+      found = Object.values((d.query||{}).pages||{}).filter(p => !isRussian({ description: p.description })).sort((a,b)=>a.index-b.index).map(p => ({ title: p.title.replace(/ \(.*film\)$/,''), orig: p.title.replace(/ \(.*film\)$/,''), year: ((p.title.match(/\((\d{4})/)||[])[1]) || ((p.description||'').match(/\d{4}/)||[''])[0], poster: p.thumbnail ? p.thumbnail.source : '' }));
     }
     box.innerHTML = found.length ? found.map((f,i) => `<button class="res" data-add="${i}">${f.poster ? `<img alt="" referrerpolicy="no-referrer" src="${esc(f.poster)}">` : '<span class="ph"></span>'}<span style="display:flex;flex-direction:column"><span style="font-weight:600">${esc(f.title)}</span><span class="lbl">${esc([f.year, f.orig !== f.title ? f.orig : ''].filter(Boolean).join(' · '))}</span></span></button>`).join('') : '<div class="res lbl">Нічого не знайдено</div>';
   } catch(e) { box.innerHTML = '<div class="res lbl">Не вдалося з\'єднатися з джерелом даних</div>'; }
