@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="theme-color" content="#E0261C">
-<script src="shared.js?v=13"></script>
+<script src="shared.js?v=14"></script>
 <style>
 :root{color-scheme:light dark;
   --bg:#F2F2F7;--card:#FFFFFF;--ink:#000;--ink2:#3A3A3C;--muted:#6C6C70;--sep:#D1D1D6;--seg:#E3E3E8;--segOn:#FFFFFF;--fill:#EFEFF4;
@@ -192,8 +192,8 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .lb .cnt{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;font-size:13px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
-<link rel="stylesheet" href="glass.css?v=13">
-<script src="motion.js?v=13" defer></script>
+<link rel="stylesheet" href="glass.css?v=14">
+<script src="motion.js?v=14" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -853,17 +853,17 @@ function openSheet(id){
       </div>
     </div>
     <div class="box"><h3>Короткий зміст</h3><p>${esc(overview)}</p></div>
-    <div class="box" style="display:flex;flex-direction:column;gap:10px">
-      ${it.status === 'watched' ? `<h3 style="margin:0">Мій рейтинг${it.pep === 5 ? ' · вогонь!' : it.pep ? ' · ' + it.pep + ' з 5' : ''}</h3>
+    ${it.status === 'watched' ? `<div class="box" style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0">Мій рейтинг${it.pep === 5 ? ' · вогонь!' : it.pep ? ' · ' + it.pep + ' з 5' : ''}</h3>
       <div class="pep" role="group" aria-label="Мій рейтинг у перчиках">${[1,2,3,4,5].map(n => `<button data-pep="${n}" class="${(it.pep||0) >= n ? 'on' : ''}" aria-pressed="${it.pep===n}" aria-label="${n === 5 ? 'Вогонь — максимум' : n + ' з 5 перчиків'}">${n === 5 ? '🔥' : '🌶️'}</button>`).join('')}</div>
-      ${it.watchedAt ? `<span class="meta">Переглянуто ${new Date(it.watchedAt).toLocaleDateString('uk-UA', {day:'numeric', month:'long', year:'numeric'})}</span>` : ''}` : '<h3 style="margin:0">Нотатка</h3>'}
-      <textarea class="mynote" id="myNote" placeholder="Нотатка: враження, з ким дивився, що порадили…">${esc(it.note || '')}</textarea></div>
+      ${it.watchedAt ? `<span class="meta">Переглянуто ${new Date(it.watchedAt).toLocaleDateString('uk-UA', {day:'numeric', month:'long', year:'numeric'})}</span>` : ''}</div>` : ''}
     ${it.status === 'watching' && total ? `<div class="row box" style="padding:8px 8px 8px 16px"><span>Серія ${it.ep||0} з ${total}</span><div class="stepper"><button data-ep="-1" aria-label="Мінус серія">−</button><button data-ep="1" aria-label="Плюс серія">+</button></div></div>` : ''}
     <div><div class="lbl" style="padding:0 4px 8px">Статус</div>
       <div class="seg" role="group" aria-label="Статус" style="max-width:none">${['watching','planned','watched'].map(k => `<button aria-pressed="${it.status===k}" data-set="${k}">${LABEL[k]}</button>`).join('')}</div></div>
     ${it.status === 'watched' ? `<button class="big back" data-unwatch>Повернути в «${LABEL[back]}»</button>` : `<button class="big go" data-watch>✓ Позначити переглянутим</button>`}
     <div id="extras">${extrasHTML(extrasCache[id] && (extrasCache[id].shots.length || extrasCache[id].cast.length) ? extrasCache[id] : null)}</div>
     <div id="more" class="more">${moreHTML(it, moreCache[id])}</div>
+    <div class="box" style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0">Нотатка</h3>
+      <textarea class="mynote" id="myNote" placeholder="Враження, з ким дивився, що порадили…">${esc(it.note || '')}</textarea></div>
     <button class="big del" data-refresh>Оновити дані з інтернету</button>
     <button class="big del" data-remove style="color:var(--tint)">Видалити зі списку</button>`;
   $('#sheet').querySelectorAll('img').forEach(i => { if (i.complete && i.naturalWidth) i.classList.add('ok'); });

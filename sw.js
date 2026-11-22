@@ -1,5 +1,5 @@
 /* «Тю і Шо» — офлайн: сторінки беремо з мережі, а без неї — з кешу; картинки кешуємо. */
-const V = 'tyuisho-v13';
+const V = 'tyuisho-v14';
 const SHELL = ['./', 'index.html', 'kino.html', 'phrases.js', 'shared.js', 'glass.css', 'motion.js', 'manifest.webmanifest', 'icons/icon-192.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V && k !== V + '-img').map(k => caches.delete(k)))).then(() => self.clients.claim())); });
