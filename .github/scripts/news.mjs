@@ -19,6 +19,13 @@ const SOURCES = [
   { lang: 'uk', name: 'Главред', url: 'https://glavred.net/rss', filter: true },
   { lang: 'uk', name: 'ZAXID.NET', url: 'https://zaxid.net/rss/all.xml', filter: true },
   { lang: 'uk', name: 'Радіо Свобода', url: 'https://www.radiosvoboda.org/api/zrqiteuuir', filter: true },
+  // Світ — англійською, перекладаються автоматично
+  { lang: 'en', name: 'Variety', url: 'https://variety.com/v/film/feed/' },
+  { lang: 'en', name: 'Deadline', url: 'https://deadline.com/v/film/feed/' },
+  { lang: 'en', name: 'The Hollywood Reporter', url: 'https://www.hollywoodreporter.com/c/movies/movie-news/feed/' },
+  { lang: 'en', name: 'IndieWire', url: 'https://www.indiewire.com/c/film/feed/' },
+  { lang: 'en', name: 'Screen Rant', url: 'https://screenrant.com/feed/movie-news/' },
+  { lang: 'en', name: 'Collider', url: 'https://collider.com/feed/category/movie-news/' },
 ];
 // слово має починатися з цих основ (щоб «редактор» не ловився як «актор»)
 const KINO = /(?<!\p{L})(кіно(?!а)|фільм|серіал|кінопрем|трейлер|режисер|актор|акторк|мультфільм|мультсеріал|аніме|оскар|берлінале|netflix|кінофестивал|кінотеатр|голлівуд|кастинг)/iu;
