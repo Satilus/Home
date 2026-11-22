@@ -147,6 +147,8 @@ const TYPES = ['Плівковий дзеркальний', 'Плівковий 
 const SEED = [
  {
   "id": "c1",
+  "img": "https://commons.wikimedia.org/wiki/Special:FilePath/FED_-_2_type_b_front_with_lens.jpg?width=800",
+  "imgSource": "Wikimedia Commons — FED - 2 type b front with lens.jpg",
   "status": "have",
   "brand": "ФЕД",
   "name": "2",
@@ -160,6 +162,8 @@ const SEED = [
  },
  {
   "id": "c2",
+  "img": "https://commons.wikimedia.org/wiki/Special:FilePath/FED3-camera.JPG?width=800",
+  "imgSource": "Wikimedia Commons — FED3-camera.JPG",
   "status": "have",
   "brand": "ФЕД",
   "name": "3",
@@ -173,6 +177,8 @@ const SEED = [
  },
  {
   "id": "c3",
+  "img": "https://commons.wikimedia.org/wiki/Special:FilePath/FED-4_Camera.jpg?width=800",
+  "imgSource": "Wikimedia Commons — FED-4 Camera.jpg",
   "status": "have",
   "brand": "ФЕД",
   "name": "4",
@@ -186,6 +192,8 @@ const SEED = [
  },
  {
   "id": "c4",
+  "img": "https://commons.wikimedia.org/wiki/Special:FilePath/2016_FED_5C_01.JPG?width=800",
+  "imgSource": "Wikimedia Commons — 2016 FED 5C 01.JPG",
   "status": "have",
   "brand": "ФЕД",
   "name": "5",
@@ -199,6 +207,8 @@ const SEED = [
  },
  {
   "id": "c5",
+  "img": "https://commons.wikimedia.org/wiki/Special:FilePath/Zenit-ET.JPG?width=800",
+  "imgSource": "Wikimedia Commons — Zenit-ET.JPG",
   "status": "have",
   "brand": "Зеніт",
   "name": "ЕТ",
@@ -212,6 +222,8 @@ const SEED = [
  },
  {
   "id": "c6",
+  "img": "https://commons.wikimedia.org/wiki/Special:FilePath/Zenit-B_Helios-44-2_2012_G1.jpg?width=800",
+  "imgSource": "Wikimedia Commons — Zenit-B Helios-44-2 2012 G1.jpg",
   "status": "have",
   "brand": "Зеніт",
   "name": "В",
@@ -228,6 +240,8 @@ const SEED = [
 let removed = store.get('cams.removed', []);
 let items = store.get('cams.items', null) || [];
 SEED.forEach(sd => { if (!items.some(i => i.id === sd.id) && !removed.includes(sd.id)) items.push(Object.assign({ qty: sd.status === 'have' ? 1 : 0, added: 0 }, sd)); });
+/* Міграція: перевірені фото з SEED замінюють автопідбір */
+if (store.get('cams.imgv', 0) < 1) { items.forEach(i => { const sd = SEED.find(x => x.id === i.id); if (sd && sd.img && (!i.img || /автопідбір/.test(i.imgSource||''))) { i.img = sd.img; i.imgSource = sd.imgSource; } }); store.set('cams.items', items); store.set('cams.imgv', 1); }
 let ui = Object.assign({ tab:'have', sort:'year', q:'' }, store.get('cams.ui', {}));
 const save = () => { store.set('cams.items', items); store.set('cams.ui', { tab: ui.tab, sort: ui.sort }); };
 
