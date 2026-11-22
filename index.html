@@ -156,8 +156,8 @@ const SEED = [
  ['s2','series','planned','Тед Лассо','Ted Lasso','2020','8.8',{},'Американського тренера з американського футболу запрошують очолити англійський футбольний клуб, хоча цієї гри він майже не знає.'],
  ['s3','series','planned','Одні з нас','The Last of Us','2023','8.7',{},'Контрабандист Джоел веде дівчинку Еллі через Америку, спустошену грибковою пандемією.'],
  ['s4','series','planned','Розділення','Severance','2022','8.7',{},'Працівникам корпорації розділили пам\'ять на робочу й особисту, і вони починають підозрювати, що компанія щось приховує.'],
- ['s5','series','planned','Синій самурай','Blue Eye Samurai','2023','8.7',{},'У Японії доби Едо мечниця змішаного походження вирушає помститися чотирьом чоловікам, один з яких — її батько.'],
- ['s6','series','planned','Непереможний','Invincible','2021','8.7',{},'Син наймогутнішого супергероя Землі отримує власні сили й дізнається темну правду про батька.'],
+ ['s5','anime','planned','Синій самурай','Blue Eye Samurai','2023','8.7',{},'У Японії доби Едо мечниця змішаного походження вирушає помститися чотирьом чоловікам, один з яких — її батько.'],
+ ['s6','anime','planned','Непереможний','Invincible','2021','8.7',{},'Син наймогутнішого супергероя Землі отримує власні сили й дізнається темну правду про батька.'],
  ['s7','series','planned','Шоґун','Shogun','2024','8.6',{},'Англійський штурман потрапляє до Японії 1600 року й опиняється в центрі боротьби за владу між даймьо.'],
  ['s8','series','planned','Кіберпанк: Бігуни на межі','Cyberpunk: Edgerunners','2022','8.6',{},'Хлопець із нетрів Найт-Сіті стає найманцем, щоб вижити в місті, де технології поглинають людей.'],
  ['s9','series','planned','Ведмідь','The Bear','2022','8.5',{},'Шеф із ресторану високої кухні повертається в Чикаго, щоб урятувати сендвіч-закусочну загиблого брата.'],
@@ -231,8 +231,13 @@ const isRussian = x => {
 let removed = store.get('lists.removed', []);
 let items = (store.get('lists.items', null) || []).filter(i => !BANNED_IDS.includes(i.id) && !i.ru);
 SEED.forEach(sd => { if (!items.some(i => i.id === sd.id) && !removed.includes(sd.id)) items.push(sd); });
+// виправлення типів зі стартового списку (напр. «Синій самурай», «Непереможний» → аніме)
+const TYPE_FIX = { s5: 'anime', s6: 'anime' };
+let typeFixed = [];
+items.forEach(i => { if (TYPE_FIX[i.id] && i.type !== TYPE_FIX[i.id]) { i.type = TYPE_FIX[i.id]; typeFixed.push(i.id); } });
 let meta = store.get('lists.meta', {});
 let ui = Object.assign({ type:'series', status:'planned' }, store.get('lists.ui', {}));
+if (typeFixed.length) { typeFixed.forEach(id => { delete meta[id]; }); store.set('lists.meta', meta); const ex = store.get('lists.extras', {}); typeFixed.forEach(id => delete ex[id]); store.set('lists.extras', ex); store.set('lists.items', items); }
 let tmdbKey = store.get('lists.tmdb', '');
 const save = () => { store.set('lists.items', items); store.set('lists.ui', ui); };
 const saveMeta = () => store.set('lists.meta', meta);
