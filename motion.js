@@ -17,13 +17,13 @@
       document.body.appendChild(bar);
       const sync = () => { bar.firstChild.textContent = h1.textContent; };
       sync(); new MutationObserver(sync).observe(h1, { childList: true, characterData: true, subtree: true });
-      let ticking = false;
+      let ticking = false, lastK = -1;
       const onScroll = () => {
         if (ticking) return; ticking = true;
         requestAnimationFrame(() => {
           const y = Math.max(0, scrollY);
           document.body.classList.toggle('scrolled', y > 44);
-          if (!reduce) { const k = Math.min(1, y / 60); h1.style.transform = `scale(${1 - k * 0.06})`; h1.style.opacity = String(1 - k * 0.9); }
+          if (!reduce) { const k = Math.round(Math.min(1, y / 60) * 100) / 100; if (k !== lastK) { lastK = k; h1.style.transform = k ? `scale(${1 - k * 0.06})` : ''; h1.style.opacity = k ? String(1 - k * 0.9) : ''; } }
           ticking = false;
         });
       };
@@ -151,8 +151,13 @@
     /* ---------- спостереження за перемальовуванням ---------- */
     let segT;
     new MutationObserver(muts => {
-      muts.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) reveal(n); }));
-      clearTimeout(segT); segT = setTimeout(refreshSegs, 0);
+      let segTouched = false;
+      muts.forEach(m => {
+        const t = m.target.nodeType === 1 ? m.target : m.target.parentElement;
+        if (t && t.closest && t.closest(GROUPS)) segTouched = true;
+        if (m.type === 'childList') m.addedNodes.forEach(n => { if (n.nodeType === 1) { reveal(n); if (!segTouched && n.querySelector && (n.matches(GROUPS) || n.querySelector(GROUPS))) segTouched = true; } });
+      });
+      if (segTouched) { clearTimeout(segT); segT = setTimeout(refreshSegs, 16); }
     }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
     addEventListener('resize', () => { last.clear(); segs().forEach(x => { const i = x.querySelector('.seg-ind'); if (i) delete i.dataset.placed; }); refreshSegs(); });
     refreshSegs();

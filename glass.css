@@ -7,7 +7,8 @@
   --glass-hi:rgba(255,255,255,.9);
   --glass-lo:rgba(255,255,255,.25);
   --glass-shadow:0 8px 28px rgba(20,20,40,.10),0 1px 2px rgba(20,20,40,.06);
-  --blur:blur(22px) saturate(185%);
+  --blur:blur(16px) saturate(170%);
+  --glass-flat:rgba(255,255,255,.66);
   --r-card:22px;
   --bg:#EEF0F6;
 }
@@ -18,28 +19,32 @@
   --glass-hi:rgba(255,255,255,.22);
   --glass-lo:rgba(255,255,255,.05);
   --glass-shadow:0 10px 30px rgba(0,0,0,.45);
+  --glass-flat:rgba(40,40,46,.62);
   --bg:#050507;
 }}
 
 /* м'який кольоровий фон, крізь який видно скло */
 body{background:var(--bg)}
-body::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
     radial-gradient(38% 30% at 12% 8%, rgba(255,92,72,.30), transparent 70%),
     radial-gradient(34% 28% at 92% 22%, rgba(140,110,255,.26), transparent 70%),
     radial-gradient(40% 32% at 70% 88%, rgba(255,170,60,.22), transparent 70%),
     radial-gradient(30% 26% at 8% 70%, rgba(60,180,255,.18), transparent 70%);
-  filter:blur(10px)}
+  transform:translateZ(0)}
 @media (prefers-color-scheme:dark){body::before{opacity:.75}}
 
 /* базовий рецепт скла */
 .quote,.stats,.pick,.empty,.box,.stat,
 .seg,.pills button,.iconbtn,.syncbtn,.field,.big.back,.chip,.toast,.tabbar nav{
-  background:var(--glass)!important;
-  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  background:var(--glass-flat)!important;
   border:.5px solid var(--glass-edge)!important;
   box-shadow:inset 0 1px 0 var(--glass-hi),inset 0 -1px 0 var(--glass-lo),var(--glass-shadow)}
 .quote,.stats,.pick,.empty,.box{border-radius:var(--r-card)!important}
+
+/* справжнє скло (розмиття) — тільки там, де під ним рухається вміст */
+.tabbar nav,.toast{background:var(--glass)!important;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.tabbar nav{transform:translateZ(0)}
 
 /* круглі скляні кнопки в заголовку */
 header .iconbtn,header .syncbtn{width:44px;height:44px;border-radius:50%!important;margin-left:6px}
@@ -73,12 +78,12 @@ header > div:last-child{display:flex;align-items:center}
 .toast button{background:var(--glass-strong)!important;color:var(--tint)!important;border-radius:999px!important}
 
 /* аркуш (картка фільму, налаштування): скляний і «плаваючий» */
-.sheet,.syncov .sh{background:var(--glass-strong)!important;-webkit-backdrop-filter:blur(30px) saturate(190%);backdrop-filter:blur(30px) saturate(190%);
+.sheet,.syncov .sh{background:var(--glass-strong)!important;-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);
   border:.5px solid var(--glass-edge);box-shadow:inset 0 1px 0 var(--glass-hi),0 -10px 40px rgba(0,0,0,.18);
   border-radius:34px 34px 0 0!important}
 @media (min-width:700px){.sheet,.syncov .sh{border-radius:34px!important;margin-bottom:16px}}
 .backdrop,.syncov .bg{background:rgba(0,0,0,.28)!important}
-.sheet .box,.syncov .bx{background:var(--glass)!important;border:.5px solid var(--glass-edge);border-radius:20px!important}
+.sheet .box,.syncov .bx{background:var(--glass-flat)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:.5px solid var(--glass-edge);border-radius:20px!important}
 
 /* великі кнопки — капсули */
 .big,.btn,.syncov .b{border-radius:999px!important}
@@ -87,7 +92,7 @@ header > div:last-child{display:flex;align-items:center}
 .btn.go{background:var(--tint)!important;border:0!important}
 
 /* кнопки на постерах */
-.check,.add{-webkit-backdrop-filter:blur(14px) saturate(180%);backdrop-filter:blur(14px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 2px 8px rgba(0,0,0,.25)}
+.check,.add{box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 2px 8px rgba(0,0,0,.25)}
 
 /* доступність: менше прозорості — суцільні поверхні */
 @media (prefers-reduced-transparency:reduce){
@@ -109,8 +114,8 @@ header > div:last-child{display:flex;align-items:center}
 .tabbar{view-transition-name:tabbar}
 ::view-transition-old(root){animation:vtOut .28s ease both}
 ::view-transition-new(root){animation:vtIn .42s var(--spring) both}
-@keyframes vtOut{to{opacity:0;transform:scale(.985);filter:blur(4px)}}
-@keyframes vtIn{from{opacity:0;transform:scale(1.015);filter:blur(6px)}}
+@keyframes vtOut{to{opacity:0}}
+@keyframes vtIn{from{opacity:0;transform:translateY(6px)}}
 
 /* компактна скляна панель зверху при прокручуванні */
 .navbar{position:fixed;top:0;left:0;right:0;z-index:15;height:calc(48px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);
@@ -126,25 +131,24 @@ header h1{transform-origin:left bottom;transition:transform .1s linear,opacity .
 .seg-ind{position:absolute;left:0;top:0;z-index:-1;border-radius:999px;background:var(--glass-strong);pointer-events:none;
   --x:0px;--y:0px;--sx:1;--sy:1;transform:translate(var(--x),var(--y)) scale(var(--sx),var(--sy));
   box-shadow:inset 0 1px 0 var(--glass-hi),0 4px 14px rgba(0,0,0,.14);
-  transition:transform .55s var(--spring),width .5s var(--spring),height .5s var(--spring),background .3s,box-shadow .3s}
+  transition:transform .55s var(--spring),width .45s var(--spring),background .3s,box-shadow .3s;will-change:transform}
 #types .seg-ind{border-radius:22px}
 .seg.has-ind button[aria-pressed=true],.tabbar nav.has-ind a[aria-current=page]{background:transparent!important;box-shadow:none!important}
 .seg button,.tabbar a{position:relative;transition:transform .35s var(--bounce),color .25s}
 /* лінза: крапля збільшується, стає прозорішою, з яскравим обідком і «збільшує» те, що під нею */
-.lensing .seg-ind{transition:transform .14s cubic-bezier(.2,.8,.3,1),width .25s var(--spring),height .25s var(--spring),background .2s,box-shadow .2s;
+.lensing .seg-ind{transition:transform .12s cubic-bezier(.2,.8,.3,1),width .2s var(--spring),background .2s,box-shadow .2s;
   background:color-mix(in srgb,var(--glass-strong) 22%,transparent);
-  -webkit-backdrop-filter:blur(1.5px) saturate(1.8) brightness(1.08);backdrop-filter:blur(1.5px) saturate(1.8) brightness(1.08);
   box-shadow:inset 0 1.5px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.35),inset 0 0 0 1px rgba(255,255,255,.45),0 10px 30px rgba(0,0,0,.22)}
 .lens-under{transform:scale(1.14)}
 .lensing a,.lensing button{transition:transform .25s var(--bounce),color .2s}
 /* поява каскадом */
 .motion-ready .rv{opacity:0}
 .motion-ready .rv.rv-in{animation:rvIn .6s var(--spring) both}
-@keyframes rvIn{from{opacity:0;transform:translateY(14px) scale(.97);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+@keyframes rvIn{from{opacity:0;transform:translate3d(0,14px,0) scale(.97)}to{opacity:1;transform:none}}
 
 /* постери: проявлення з розфокусу */
-.poster img{transition:opacity .45s ease,filter .6s var(--spring),transform .6s var(--spring)!important;filter:blur(14px);transform:scale(1.06)}
-.poster img.ok{filter:none;transform:none}
+.poster img{transition:opacity .4s ease,transform .6s var(--spring)!important;transform:scale(1.04)}
+.poster img.ok{transform:none}
 
 /* відгук на натискання */
 .open,.card,.pick,.quote{transition:transform .35s var(--spring)}
@@ -181,10 +185,16 @@ button,.btn,.tabbar a{-webkit-tap-highlight-color:transparent}
 }
 
 /* пошук, сортування, жанри */
-.search,.sortsel,.chips2 button{background:var(--glass)!important;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:.5px solid var(--glass-edge)!important;box-shadow:inset 0 1px 0 var(--glass-hi),var(--glass-shadow)}
+.search,.sortsel,.chips2 button{background:var(--glass-flat)!important;border:.5px solid var(--glass-edge)!important;box-shadow:inset 0 1px 0 var(--glass-hi),var(--glass-shadow)}
 .chips2 button[aria-pressed=true]{background:var(--tint)!important;border-color:transparent!important;color:#fff}
 .search:focus-within{box-shadow:inset 0 1px 0 var(--glass-hi),0 0 0 3px color-mix(in srgb,var(--tint) 30%,transparent)}
 .item > .open:active{transform:translateX(var(--dx,0px)) scale(.96)}
 .item.swiping > .open,.item.swiping > .open:active{transform:translateX(var(--dx,0px))!important}
-.act:not(.act-main),.ep{background:var(--glass)!important;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:.5px solid var(--glass-edge)!important;box-shadow:inset 0 1px 0 var(--glass-hi),var(--glass-shadow)}
+.act:not(.act-main),.ep{background:var(--glass-flat)!important;border:.5px solid var(--glass-edge)!important;box-shadow:inset 0 1px 0 var(--glass-hi),var(--glass-shadow)}
 .act-main{box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 10px 28px rgba(224,38,28,.35)}
+
+/* продуктивність */
+.grid .item{content-visibility:auto;contain-intrinsic-size:auto 300px}
+.row,.simrow,.chips2,.pills{contain:layout paint}
+.navbar{transform:translateZ(0)}
+header h1{transition:none!important}
