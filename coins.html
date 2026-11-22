@@ -137,13 +137,282 @@ const CART = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke
 
 /* Стартовий список: заповнюється з твого переліку. Поля:
    id, status ('have' | 'want'), name, country, year, nominal, metal, weight, diameter, mintage, series, history, img, imgBack, imgSource, qty */
-const SEED = [];
+const SEED = [
+ {
+  "id": "z1",
+  "status": "have",
+  "name": "Десантно-штурмові війська ЗСУ",
+  "country": "Україна",
+  "year": "2021",
+  "nominal": "10 гривень",
+  "qty": 2,
+  "history": "Присвячена роду військ високої мобільності, призначеному для швидкого розгортання, штурмових і рейдових дій, зокрема з висадкою з повітря. Спершу випущена як пам'ятна монета спеціального випуску, з 2022 року такі монети НБУ пустив у звичайний обіг.",
+  "q": "Ukraine 10 hryvnia Air Assault Forces coin",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "weight": "12,4 г",
+  "diameter": "30 мм",
+  "mintage": "1000000",
+  "series": "Збройні Сили України"
+ },
+ {
+  "id": "z2",
+  "status": "have",
+  "name": "На варті життя",
+  "country": "Україна",
+  "year": "2019",
+  "nominal": "10 гривень",
+  "qty": 2,
+  "history": "Присвячена військовим медикам, які рятують поранених на передовій і в госпіталях. Уведена в обіг 26 грудня 2019 року разом із монетами «КрАЗ-6322 «Солдат» та «Учасникам бойових дій на території інших держав».",
+  "q": "Ukraine 10 hryvnia Standing Guard over Life coin",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "weight": "12,4 г",
+  "diameter": "30 мм",
+  "mintage": "1000000",
+  "series": "Збройні Сили України"
+ },
+ {
+  "id": "z3",
+  "status": "have",
+  "name": "Сухопутні війська ЗСУ",
+  "country": "Україна",
+  "year": "2021",
+  "nominal": "10 гривень",
+  "qty": 4,
+  "history": "Присвячена найчисельнішому виду Збройних Сил, який веде бойові дії на суходолі. Уведена в обіг 1 грудня 2021 року.",
+  "q": "Ukraine 10 hryvnia Ground Forces coin",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "weight": "12,4 г",
+  "diameter": "30 мм",
+  "mintage": "1000000",
+  "series": "Збройні Сили України"
+ },
+ {
+  "id": "z4",
+  "status": "have",
+  "name": "Збройні Сили України",
+  "country": "Україна",
+  "year": "2021",
+  "nominal": "10 гривень",
+  "qty": 2,
+  "history": "На реверсі — беретні знаки різних видів і родів військ на тлі рослинного орнаменту, на аверсі — емблема ЗСУ та малий Державний Герб. Монета узагальнює всю серію про українське військо.",
+  "q": "Ukraine 10 hryvnia Armed Forces of Ukraine 2021 coin",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "weight": "12,4 г",
+  "diameter": "30 мм",
+  "mintage": "1000000",
+  "series": "Збройні Сили України"
+ },
+ {
+  "id": "z5",
+  "status": "have",
+  "name": "Повітряні Сили ЗСУ",
+  "country": "Україна",
+  "year": "2020",
+  "nominal": "10 гривень",
+  "qty": 1,
+  "history": "Присвячена Повітряним Силам — захисникам неба України: авіації, зенітним ракетним військам і радіотехнічним підрозділам. Уведена в обіг 3 серпня 2020 року, до Дня Повітряних Сил.",
+  "q": "Ukraine 10 hryvnia Air Force coin",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "weight": "12,4 г",
+  "diameter": "30 мм",
+  "mintage": "1000000",
+  "series": "Збройні Сили України"
+ },
+ {
+  "id": "z6",
+  "status": "have",
+  "name": "Військово-Морські Сили ЗСУ",
+  "country": "Україна",
+  "year": "2021",
+  "nominal": "10 гривень",
+  "qty": 1,
+  "history": "Присвячена українському флоту, який захищає морське узбережжя й судноплавство. Входить до серії пам'ятних монет спеціального випуску «Збройні Сили України».",
+  "q": "Ukraine 10 hryvnia Navy coin 2021",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "weight": "12,4 г",
+  "diameter": "30 мм",
+  "mintage": "1000000",
+  "series": "Збройні Сили України"
+ },
+ {
+  "id": "z7",
+  "status": "have",
+  "name": "Обов'язок. Мужність. Пам'ять",
+  "country": "Україна",
+  "year": "",
+  "nominal": "10 гривень",
+  "qty": 2,
+  "history": "",
+  "q": "Ukraine 10 hryvnia coin обов'язок мужність пам'ять",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "series": "Збройні Сили України"
+ },
+ {
+  "id": "z8",
+  "status": "have",
+  "name": "КрАЗ-6322 «Солдат»",
+  "country": "Україна",
+  "year": "2019",
+  "nominal": "10 гривень",
+  "qty": 2,
+  "history": "Присвячена повнопривідній вантажівці кременчуцького заводу КрАЗ, яка перевозить особовий склад і вантажі, служить у підрозділах спецпризначення й миротворчих силах ООН. На реверсі — машина, що мчить угору, залишаючи сліди шин.",
+  "q": "KrAZ-6322 Soldier coin Ukraine 2019",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "weight": "12,4 г",
+  "diameter": "30 мм",
+  "mintage": "1000000",
+  "series": "Збройні Сили України"
+ },
+ {
+  "id": "z9",
+  "status": "have",
+  "name": "День українського добровольця",
+  "country": "Україна",
+  "year": "2018",
+  "nominal": "10 гривень",
+  "qty": 1,
+  "history": "Вшановує учасників добровольчих формувань, які у 2014 році стали на захист територіальної цілісності України. День українського добровольця відзначають 14 березня.",
+  "q": "Ukraine 10 hryvnia Ukrainian Volunteer Day coin",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "weight": "12,4 г",
+  "diameter": "30 мм",
+  "mintage": "1000000",
+  "series": "Збройні Сили України"
+ },
+ {
+  "id": "z10",
+  "status": "have",
+  "name": "Державна прикордонна служба України",
+  "country": "Україна",
+  "year": "2020",
+  "nominal": "10 гривень",
+  "qty": 1,
+  "history": "Присвячена прикордонникам, які охороняють державний кордон і морську економічну зону, а під час вторгнення воюють разом із ЗСУ. На аверсі — емблема служби між лавровою та калиновою гілками. Уведена в обіг 19 листопада 2020 року.",
+  "q": "Ukraine 10 hryvnia State Border Guard Service coin",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "weight": "12,4 г",
+  "diameter": "30 мм",
+  "mintage": "1000000",
+  "series": "Збройні Сили України"
+ },
+ {
+  "id": "z11",
+  "status": "have",
+  "name": "День пам'яті полеглих захисників України",
+  "country": "Україна",
+  "year": "2020",
+  "nominal": "10 гривень",
+  "qty": 1,
+  "history": "Уведена в обіг 26 серпня 2020 року, до Дня пам'яті захисників, які загинули за незалежність. На реверсі — соняшник із двома всохлими пелюстками, що символізують Донеччину й Луганщину, та сльоза з тамгою — гербом Криму.",
+  "q": "Ukraine 10 hryvnia Day of Remembrance of Fallen Defenders coin",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "weight": "12,4 г",
+  "diameter": "30 мм",
+  "mintage": "1000000",
+  "series": "Збройні Сили України"
+ },
+ {
+  "id": "z12",
+  "status": "have",
+  "name": "100 років створення українського військово-морського флоту",
+  "country": "Україна",
+  "year": "2018",
+  "nominal": "10 гривень",
+  "qty": 1,
+  "history": "Відзначає століття подій 1918 року, коли над кораблями Чорноморського флоту підняли українські прапори і постав флот Української Народної Республіки.",
+  "q": "Ukraine 10 hryvnia 100 years Ukrainian Navy coin 2018",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "weight": "12,4 г",
+  "diameter": "30 мм",
+  "mintage": "1000000",
+  "series": "Збройні Сили України"
+ },
+ {
+  "id": "z13",
+  "status": "have",
+  "name": "Сили підтримки ЗСУ — завжди поруч",
+  "country": "Україна",
+  "year": "2023",
+  "nominal": "10 гривень",
+  "qty": 1,
+  "history": "Обігова пам'ятна монета, присвячена Силам підтримки — інженерним військам, РХБ-захисту, топографічній службі та іншим підрозділам забезпечення. Уведена в обіг 19 травня 2023 року; частину тиражу випустили в сувенірних роликах по 25 монет.",
+  "q": "Support Forces Armed Forces of Ukraine 10 hryvnia coin 2023",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "weight": "6,4 г",
+  "diameter": "23,5 мм",
+  "mintage": "10000000",
+  "series": "Збройні Сили України"
+ },
+ {
+  "id": "z14",
+  "status": "have",
+  "name": "Ми сильні. Ми разом. Запорізька область",
+  "country": "Україна",
+  "year": "2026",
+  "nominal": "10 гривень",
+  "qty": 1,
+  "history": "Серія «Ми сильні. Ми разом», яку НБУ започаткував у грудні 2025 року, присвячена єдності України та її областям. Монету Запорізької області ввели в обіг 24 лютого 2026 року разом із Харківською та Херсонською.",
+  "q": "Zaporizhzhia oblast 10 hryvnia coin 2026",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "weight": "6,4 г",
+  "diameter": "23,5 мм",
+  "mintage": "2000000",
+  "series": "Ми сильні. Ми разом"
+ },
+ {
+  "id": "z15",
+  "status": "have",
+  "name": "Сили спеціальних операцій ЗСУ",
+  "country": "Україна",
+  "year": "2021",
+  "nominal": "10 гривень",
+  "qty": 1,
+  "history": "Присвячена Силам спеціальних операцій. Гаслом монети стали слова князя Святослава «Іду на ви!», які взяли за девіз бійці ССО.",
+  "q": "Ukraine 10 hryvnia Special Operations Forces coin",
+  "added": 0,
+  "metal": "сплав на основі цинку з нікелевим покривом",
+  "weight": "12,4 г",
+  "diameter": "30 мм",
+  "mintage": "1000000",
+  "series": "Збройні Сили України"
+ }
+];
 
 let removed = store.get('coins.removed', []);
 let items = store.get('coins.items', null) || [];
 SEED.forEach(sd => { if (!items.some(i => i.id === sd.id) && !removed.includes(sd.id)) items.push(Object.assign({ qty: sd.status === 'have' ? 1 : 0, added: 0 }, sd)); });
 let ui = Object.assign({ tab:'have', sort:'year', q:'' }, store.get('coins.ui', {}));
 const save = () => { store.set('coins.items', items); store.set('coins.ui', { tab: ui.tab, sort: ui.sort }); };
+
+/* ---------- автопідбір зображень (Wikimedia Commons) ---------- */
+async function commonsSearch(q, limit){
+  const url = `https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=${limit||16}&gsrsearch=${encodeURIComponent(q)}&prop=imageinfo&iiprop=url&iiurlwidth=400`;
+  const d = await (await fetch(url)).json();
+  return Object.values((d.query||{}).pages||{}).sort((a,b)=>a.index-b.index).map(p => p.imageinfo && p.imageinfo[0]).filter(Boolean).filter(ii => /\.(png|jpe?g|webp)$/i.test(ii.url)).map(ii => ({ thumb: ii.thumburl || ii.url, page: ii.descriptionurl }));
+}
+let autoBusy = false;
+async function autoImages(){
+  if (autoBusy) return; autoBusy = true;
+  const tried = store.get('coins.autoTried', []);
+  for (const it of items.filter(i => !i.img && i.q && !tried.includes(i.id))) {
+    try { const r = await commonsSearch(it.q, 3); if (r[0]) { it.img = r[0].thumb; it.imgSource = 'Wikimedia Commons (автопідбір)'; save(); render(); } tried.push(it.id); store.set('coins.autoTried', tried); } catch(e) {}
+  }
+  autoBusy = false;
+}
 
 /* ---------- рендер ---------- */
 function coinVisual(it, big){
@@ -191,7 +460,7 @@ function openSheet(id){
     <div class="hero">${coinVisual(it, true)}
       ${it.imgBack ? `<div class="sides"><div class="seg" role="group" aria-label="Сторона" style="width:220px"><button data-side="front" aria-pressed="${ui.side !== 'back'}">Аверс</button><button data-side="back" aria-pressed="${ui.side === 'back'}">Реверс</button></div></div>` : ''}
       <h2>${esc(it.name)}</h2>
-      ${it.imgSource ? `<span class="lbl">Зображення: ${esc(it.imgSource)}</span>` : ''}
+      ${it.imgSource ? `<span class="lbl">Зображення: ${esc(it.imgSource)}${/автопідбір/.test(it.imgSource) ? ' — якщо не та монета, зміни в «Редагувати»' : ''}</span>` : ''}
     </div>
     ${rows.length ? `<div class="group">${rows.map(r => `<div class="r"><span>${esc(r[0])}</span><span>${esc(r[1])}</span></div>`).join('')}</div>` : ''}
     ${it.history ? `<div class="box"><h3>Історія</h3><p>${esc(it.history)}</p></div>` : ''}
@@ -239,9 +508,7 @@ async function findImages(){
   if (!draft.name.trim()) { box.innerHTML = '<span class="hint">Спершу введи назву</span>'; return; }
   box.innerHTML = '<span class="hint">Шукаю…</span>';
   try {
-    const url = `https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=16&gsrsearch=${encodeURIComponent(q)}&prop=imageinfo&iiprop=url&iiurlwidth=400`;
-    const r = await fetch(url); const d = await r.json();
-    imgResults = Object.values((d.query||{}).pages||{}).sort((a,b)=>a.index-b.index).map(p => p.imageinfo && p.imageinfo[0]).filter(Boolean).filter(ii => /\.(png|jpe?g|webp)$/i.test(ii.url)).map(ii => ({ thumb: ii.thumburl || ii.url, page: ii.descriptionurl }));
+    imgResults = await commonsSearch(q, 16);
     box.innerHTML = imgResults.length ? imgResults.map((x,i) => `<button data-pickimg="${i}" aria-pressed="${draft.img === x.thumb}" aria-label="Зображення ${i+1}"><img alt="" referrerpolicy="no-referrer" src="${esc(x.thumb)}"></button>`).join('') : '<span class="hint">Нічого не знайдено — спробуй іншу назву або встав посилання вручну.</span>';
   } catch(e) { box.innerHTML = '<span class="hint">Не вдалося з\'єднатися з Wikimedia Commons</span>'; }
 }
@@ -278,6 +545,7 @@ document.addEventListener('click', e => {
 });
 
 render();
+autoImages();
 }
 </script>
 </body>
