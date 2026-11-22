@@ -59,6 +59,11 @@ h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .done{min-height:44px;border:0;background:transparent;color:var(--tint);font-size:17px;font-weight:600;padding:0 4px}
 .lbl{font-size:13px;color:var(--muted)}
 .hero .plate{max-width:280px;margin:0 auto;border-radius:20px}
+.flip{display:block;width:100%;max-width:280px;margin:0 auto;padding:0;border:0;background:transparent;perspective:800px}
+.flip.anim .plate{animation:flip .35s ease-out}
+@keyframes flip{from{transform:rotateY(90deg)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){.flip.anim .plate{animation:none}}
+.fliphint{display:block;text-align:center;font-size:12px;color:var(--muted);margin-top:6px}
 .hero h2{margin:12px 0 2px;font-size:24px;font-weight:800;letter-spacing:-.01em;line-height:1.15;text-align:center}
 .hero .lbl{text-align:center;display:block}
 .sides{display:flex;justify-content:center;margin-top:10px}
@@ -499,6 +504,7 @@ const setStatus = (id, st) => { const it = byId(id); mutate(() => { it.status = 
 $('#toastUndo').onclick = () => { if (undoSnap) { items = JSON.parse(undoSnap); undoSnap = null; save(); render(); if (!$('#ov').hidden && $('#ov').dataset.id) openSheet($('#ov').dataset.id); } $('#toast').hidden = true; };
 
 /* ---------- картка монети ---------- */
+let flipAnim = false;
 function openSheet(id){
   const it = byId(id); if (!it) return closeSheet();
   const rows = [['Країна', it.country], ['Рік', it.year], ['Номінал', it.nominal], ['Метал', it.metal], ['Маса', it.weight], ['Діаметр', it.diameter], ['Тираж', fmtN(it.mintage)], ['Серія', it.series]].filter(r => r[1]);
@@ -506,7 +512,7 @@ function openSheet(id){
   $('#sheet').innerHTML = `
     <div class="grab"></div>
     <div class="row"><span class="lbl">${it.status === 'have' ? 'У колекції' : 'Хочу придбати'}</span><button class="done" data-close>Готово</button></div>
-    <div class="hero">${coinVisual(it, true)}
+    <div class="hero">${it.imgBack ? `<button class="flip${flipAnim ? ' anim' : ''}" data-flip aria-label="Перевернути монету: зараз ${ui.side === 'front' ? 'аверс' : 'реверс'}">${coinVisual(it, true)}</button><span class="fliphint">Натисни на монету, щоб перевернути</span>` : coinVisual(it, true)}
       ${it.imgBack ? `<div class="sides"><div class="seg" role="group" aria-label="Сторона" style="width:220px"><button data-side="front" aria-pressed="${ui.side === 'front'}">Аверс</button><button data-side="back" aria-pressed="${ui.side !== 'front'}">Реверс</button></div></div>` : ''}
       <h2>${esc(it.name)}</h2>
       ${it.imgSource ? `<span class="lbl">Зображення: ${esc(it.imgSource)}${/автопідбір/.test(it.imgSource) ? ' — якщо не та монета, зміни в «Редагувати»' : ''}</span>` : ''}
@@ -585,7 +591,8 @@ document.addEventListener('click', e => {
   else if (b.dataset.close !== undefined) closeSheet();
   else if (b.dataset.set && it) setStatus(id, b.dataset.set);
   else if (b.dataset.qty && it) { const n = (Number(it.qty) || 1) + Number(b.dataset.qty); if (n < 1) return; mutate(() => { it.qty = n; }); }
-  else if (b.dataset.side && it) { ui.side = b.dataset.side; openSheet(id); }
+  else if (b.dataset.side && it) { if (ui.side !== b.dataset.side && !(ui.side === undefined && b.dataset.side === 'back')) { ui.side = b.dataset.side; flipAnim = true; openSheet(id); flipAnim = false; } }
+  else if (b.dataset.flip !== undefined && it) { ui.side = ui.side === 'front' ? 'back' : 'front'; flipAnim = true; openSheet(id); flipAnim = false; }
   else if (b.dataset.edit !== undefined && it) openForm(it);
   else if (b.dataset.remove !== undefined && it) { mutate(() => { items = items.filter(i => i.id !== id); removed.push(id); store.set('coins.removed', removed); }, `«${it.name}» видалено`); closeSheet(); }
   else if (b.dataset.findimg !== undefined) findImages();
