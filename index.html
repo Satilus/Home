@@ -3,14 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Кінотеатр · Тю і Шо</title>
+<title>Тю і Шо</title>
 <meta name="apple-mobile-web-app-title" content="Тю і Шо">
 <meta name="application-name" content="Тю і Шо">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="theme-color" content="#E0261C">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="shared.js"></script>
+<script src="phrases.js"></script>
 <style>
 :root{color-scheme:light dark;
   --bg:#F2F2F7;--card:#FFFFFF;--ink:#000;--ink2:#3A3A3C;--muted:#6C6C70;--sep:#D1D1D6;--seg:#E3E3E8;--segOn:#FFFFFF;--fill:#EFEFF4;
@@ -20,597 +23,452 @@
 *{box-sizing:border-box;min-width:0}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
-button,input{font:inherit;color:inherit}
-button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+body.splashing{overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+a{color:inherit}
 :focus-visible{outline:2px solid #0A84FF;outline-offset:2px}
 .wrap{max-width:1080px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(110px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
-header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:16px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px}
 .eyebrow{font-size:13px;font-weight:600;color:var(--muted)}
 h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
-.iconbtn{width:44px;height:44px;border:0;background:transparent;color:var(--tint);display:inline-flex;align-items:center;justify-content:center;border-radius:22px}
-.seg{display:flex;padding:2px;border-radius:9px;background:var(--seg);max-width:440px}
-.seg button{flex:1;min-height:32px;border:0;border-radius:7px;background:transparent;font-size:13px;font-weight:500}
-.seg button[aria-pressed=true]{background:var(--segOn);font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.04)}
-.pills{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 18px}
-.pills button{min-height:36px;padding:0 14px;border-radius:18px;border:0;background:var(--seg);font-size:14px;font-weight:600}
-.pills button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:18px 14px}
-.item{position:relative}
-.open{width:100%;padding:0;border:0;background:transparent;text-align:left;display:flex;flex-direction:column;gap:8px}
-.poster{width:100%;aspect-ratio:2/3;border-radius:12px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.14)}
+h2.sec{margin:26px 0 10px;font-size:22px;font-weight:800;letter-spacing:-.01em;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+h2.sec a{font-size:15px;font-weight:600;color:var(--tint);text-decoration:none}
+.quote{position:relative;margin:4px 0 0;padding:16px 18px;border-radius:16px;background:var(--card);font-size:17px;line-height:1.45;font-weight:600}
+.quote small{display:block;margin-top:6px;font-size:12px;font-weight:600;color:var(--muted)}
+.quote button{position:absolute;right:8px;top:8px;width:36px;height:36px;border:0;border-radius:18px;background:transparent;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.stat{padding:12px 14px;border-radius:14px;background:var(--card)}
+.stat b{display:block;font-size:24px;font-weight:800;line-height:1.1}
+.stat span{font-size:12px;color:var(--muted);font-weight:600}
+.row{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 8px;margin:0 -2px;scrollbar-width:none}
+.row::-webkit-scrollbar{display:none}
+.card{flex:none;width:128px;scroll-snap-align:start;display:flex;flex-direction:column;gap:6px;text-decoration:none;position:relative}
+.poster{width:100%;aspect-ratio:2/3;border-radius:12px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.14);background:#888}
 .poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s}
 .poster img.ok{opacity:1}
-.ttl{font-size:15px;font-weight:600;line-height:1.25;padding:0 2px}
-.rt{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--ink2);padding:0 2px;margin-top:-4px}
-.check{position:absolute;top:8px;right:8px;width:36px;height:36px;border-radius:18px;display:flex;align-items:center;justify-content:center;padding:0;border:1.5px solid rgba(255,255,255,.9);background:rgba(0,0,0,.3);color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.check[aria-pressed=true]{border:0;background:var(--green)}
-.empty{padding:32px;border-radius:16px;background:var(--card);color:var(--muted);text-align:center}
-.foot{margin-top:28px;font-size:12px;color:var(--muted);text-align:center;line-height:1.6}
-.foot a{color:var(--muted)}
-/* sheet */
-.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:flex-end;justify-content:center}
-.overlay[hidden]{display:none}
-.backdrop{position:absolute;inset:0;border:0;padding:0;background:rgba(0,0,0,.38)}
-.sheet{position:relative;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;border-radius:22px 22px 0 0;background:var(--sheet);padding:10px 18px calc(28px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:16px;animation:up .25s ease-out}
-@keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
-@media (prefers-reduced-motion:reduce){.sheet{animation:none}.poster img{transition:none}}
-.grab{width:38px;height:5px;border-radius:3px;background:var(--sep);margin:0 auto}
-.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.done{min-height:44px;border:0;background:transparent;color:var(--tint);font-size:17px;font-weight:600;padding:0 4px}
-.hero{display:flex;gap:16px;align-items:flex-start}
-.hero .poster{width:124px;flex:none}
-.hero h2{margin:0;font-size:24px;font-weight:800;letter-spacing:-.01em;line-height:1.15}
-.sub{font-size:14px;color:var(--muted)}
-.meta{font-size:14px;color:var(--ink2)}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;background:var(--card);font-size:14px;font-weight:700}
-.box{padding:14px 16px;border-radius:14px;background:var(--card)}
-.box h3{margin:0 0 6px;font-size:13px;font-weight:600;text-transform:uppercase;color:var(--muted)}
-.box p{margin:0;font-size:15px;line-height:1.5}
-.pep{display:flex;gap:6px}.pep button{width:48px;height:48px;border:0;border-radius:12px;background:var(--fill);font-size:28px;line-height:1;padding:0;filter:grayscale(1);opacity:.35;transition:transform .15s,opacity .15s,filter .15s}.pep button.on{filter:none;opacity:1}.pep button:active{transform:scale(.88)}
-.peps{letter-spacing:-3px}
-.mynote{width:100%;min-height:72px;border:0;border-radius:10px;background:var(--fill);padding:10px 12px;font:inherit;color:inherit;resize:vertical}
-.mine{display:inline-flex;align-items:center;margin-left:6px;font-size:12px}
-.stepper{display:flex;gap:2px;padding:2px;border-radius:9px;background:var(--fill)}
-.stepper button{width:44px;height:36px;border:0;border-radius:7px;background:transparent;font-size:20px}
-.big{min-height:50px;border-radius:14px;border:0;font-size:17px;font-weight:600}
-.big.go{background:var(--green);color:#fff}
-.big.back{background:var(--card);color:var(--tint)}
-.big.del{background:transparent;color:var(--muted);font-size:15px;min-height:44px}
-.field{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 10px;border-radius:10px;background:var(--seg)}
-.field input{flex:1;min-height:40px;border:0;background:transparent;font-size:16px;outline:none}
-.results{border-radius:12px;background:var(--card);overflow:hidden}
-.res{width:100%;display:flex;align-items:center;gap:12px;padding:8px 14px;border:0;border-bottom:.5px solid var(--sep);background:var(--card);text-align:left;min-height:64px}
-.res img,.res .ph{width:36px;height:54px;border-radius:5px;object-fit:cover;flex:none;background:var(--fill)}
-.lbl{font-size:13px;color:var(--muted)}
-.hint{font-size:13px;color:var(--muted);line-height:1.5}
-.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:14px;max-width:calc(100% - 32px);padding:8px 8px 8px 16px;border-radius:14px;background:rgba(30,30,32,.94);color:#fff;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.ct{font-size:14px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cs{font-size:12px;color:var(--muted);margin-top:-3px}
+.add{position:absolute;top:6px;right:6px;width:34px;height:34px;border:0;border-radius:17px;background:rgba(0,0,0,.55);color:#fff;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.add[disabled]{background:var(--green);font-size:16px}
+.pick{display:flex;gap:16px;padding:14px;border-radius:16px;background:var(--card);align-items:center}
+.pick .poster{width:96px;flex:none}
+.pick h3{margin:0 0 4px;font-size:19px;font-weight:800;line-height:1.2}
+.pick p{margin:0 0 10px;font-size:13px;color:var(--muted)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{min-height:38px;padding:0 14px;border:0;border-radius:10px;background:var(--fill);font-size:14px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center}
+.btn.go{background:var(--tint);color:#fff}
+.seg{display:flex;padding:2px;border-radius:9px;background:var(--seg);max-width:440px;margin-bottom:12px}
+.seg[hidden]{display:none}
+.seg button{flex:1;min-height:32px;border:0;border-radius:7px;background:transparent;font-size:13px;font-weight:500}
+.seg button[aria-pressed=true]{background:var(--segOn);font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.12)}
+.note{font-size:13px;color:var(--muted);line-height:1.5;margin-top:6px}
+.empty{padding:20px;border-radius:14px;background:var(--card);color:var(--muted);font-size:14px;text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;padding:10px 16px;border-radius:14px;background:rgba(30,30,32,.94);color:#fff;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:calc(100% - 32px)}
 .toast[hidden]{display:none}
-.toast button{min-height:36px;padding:0 12px;border:0;border-radius:9px;background:rgba(255,255,255,.16);color:#fff;font-weight:700}
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;justify-content:center;background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--sep);padding:6px 4px calc(8px + env(safe-area-inset-bottom))}
 .tabbar nav{display:flex;width:100%;max-width:520px;justify-content:space-around}
 .tabbar a{flex:1;max-width:140px;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:48px;justify-content:center;text-decoration:none;font-size:10px;font-weight:600;color:var(--muted)}
 .tabbar a[aria-current=page]{color:var(--tint)}
-.shots{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px;-webkit-overflow-scrolling:touch}
-.shots button{flex:none;width:min(78%,300px);aspect-ratio:16/9;border-radius:12px;overflow:hidden;border:0;padding:0;background:var(--fill);scroll-snap-align:start}
-.shots img{width:100%;height:100%;object-fit:cover;display:block}
-.cast{display:flex;flex-direction:column}
-.actor{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:.5px solid var(--sep)}
-.actor:last-child{border-bottom:0}
-.actor .ph{width:44px;height:44px;border-radius:22px;flex:none;background:var(--fill);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--muted)}
-.actor .ph img{width:100%;height:100%;object-fit:cover}
-.actor b{font-size:15px;font-weight:600;display:block}
-.actor small{font-size:13px;color:var(--muted)}
-.lb{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center}
-.lb[hidden]{display:none}
-.lb img{max-width:100%;max-height:86vh;object-fit:contain}
-.lb button{position:absolute;border:0;background:rgba(255,255,255,.14);color:#fff;width:44px;height:44px;border-radius:22px;font-size:22px}
-.lb .x{top:calc(14px + env(safe-area-inset-top));right:14px}.lb .pv{left:10px;top:50%}.lb .nx{right:10px;top:50%}
-.lb .cnt{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;font-size:13px}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ================= заставка ================= */
+#splash{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#000;color:#fff;cursor:pointer;transition:opacity .8s ease,transform .8s ease}
+#splash.out{opacity:0;transform:scale(1.06);pointer-events:none}
+#splash canvas{position:absolute;inset:0;width:100%;height:100%}
+.sp-in{position:relative;z-index:2;max-width:min(860px,92vw);padding:24px;text-align:center}
+.sp-cap{font:600 11px/1.2 -apple-system,system-ui,sans-serif;letter-spacing:.24em;text-transform:uppercase;opacity:0;animation:capIn 1s .2s forwards;margin-bottom:22px}
+@keyframes capIn{to{opacity:.6}}
+.sp-q{font-size:clamp(26px,6.4vw,58px);line-height:1.18}
+.sp-q span{display:inline-block;white-space:pre}
+.sp-skip{position:absolute;z-index:3;bottom:calc(22px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;font:500 12px -apple-system,system-ui,sans-serif;opacity:0;animation:capIn 1s 2.5s forwards}
+.cursor{display:inline-block;width:.55em;height:1em;vertical-align:-.12em;background:currentColor;margin-left:2px;animation:blink .8s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* Матриця */
+.th-matrix{background:#000!important}
+.th-matrix .sp-q{color:#5CFF7A;text-shadow:0 0 12px rgba(92,255,122,.7);font-size:clamp(22px,5vw,44px);text-align:left}
+.th-matrix .sp-cap,.th-matrix .sp-skip{color:#5CFF7A}
+/* Космос */
+.th-space{background:#000!important;perspective:340px}
+.th-space .sp-in{position:absolute;bottom:0;transform-origin:50% 100%;transform:rotateX(26deg);max-width:min(640px,90vw)}
+.th-space .sp-q{color:#FFE81F;font-size:clamp(26px,6vw,48px);letter-spacing:.02em;text-align:center;animation:crawl 12s linear forwards}
+.th-space .sp-in .sp-cap{display:none}
+.sp-top{position:absolute;z-index:3;top:calc(26px + env(safe-area-inset-top));left:0;right:0;text-align:center;color:#FFE81F}
+@keyframes crawl{from{transform:translateY(15vh)}to{transform:translateY(-115vh)}}
+/* Нуар */
+.th-noir{background:radial-gradient(ellipse at 30% 40%,#3a3a3a,#050505 70%)!important;filter:grayscale(1)}
+.th-noir::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(170deg,transparent 0 26px,rgba(0,0,0,.55) 26px 46px);opacity:.7;z-index:1}
+.th-noir .sp-q{font-style:italic;color:#eee;text-shadow:0 2px 18px #000}
+.th-noir .sp-q span{opacity:0;animation:noirIn .9s forwards}
+@keyframes noirIn{from{opacity:0;filter:blur(8px);transform:translateY(8px)}to{opacity:1;filter:none;transform:none}}
+/* Жахи */
+.th-horror{background:radial-gradient(circle at 50% 55%,#1a0000,#000 70%)!important}
+.th-horror .sp-q{color:#ff2a2a;text-shadow:0 0 6px #ff0000,0 0 24px rgba(255,0,0,.6);animation:flicker 3.2s infinite}
+.th-horror .sp-q span{opacity:0;animation:horrorIn .5s forwards}
+.th-horror .sp-cap,.th-horror .sp-skip{color:#ff6b6b}
+@keyframes horrorIn{0%{opacity:0;transform:translateY(-18px) scaleY(1.4)}60%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes flicker{0%,18%,22%,62%,64%,100%{opacity:1}20%,63%{opacity:.35}}
+/* Кіберпанк */
+.th-cyber{background:linear-gradient(160deg,#0b0221,#1b0638 55%,#00121f)!important}
+.th-cyber::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 4px);z-index:1}
+.th-cyber .sp-q{color:#fff;text-shadow:-2px 0 #ff2bd6,2px 0 #00f0ff,0 0 22px rgba(255,43,214,.6)}
+.th-cyber .sp-q span{opacity:0;animation:glitchIn .45s forwards}
+.th-cyber .sp-cap{color:#00f0ff}
+@keyframes glitchIn{0%{opacity:0;transform:translateX(-12px) skewX(30deg)}40%{opacity:1;transform:translateX(6px) skewX(-15deg)}70%{transform:translateX(-3px)}100%{opacity:1;transform:none}}
+/* Піксель */
+.th-pixel{background:#1d2b53!important;image-rendering:pixelated}
+.th-pixel .sp-in{border:6px solid #fff;box-shadow:0 0 0 6px #000,inset 0 0 0 6px #000;background:#29366f;padding:28px 22px}
+.th-pixel .sp-q{font-size:clamp(14px,3.2vw,24px);line-height:1.7;color:#fff1e8}
+.th-pixel .sp-cap{color:#ffec27}
+/* Вестерн */
+.th-western{background:linear-gradient(180deg,#e8b26a,#b5651d 60%,#5a2e0e)!important;color:#2b1400}
+.th-western .sp-q{color:#3a1a02;text-shadow:0 2px 0 rgba(255,220,160,.5)}
+.th-western .sp-q span{opacity:0;animation:dropIn .7s cubic-bezier(.3,1.6,.5,1) forwards}
+.th-western .sp-cap,.th-western .sp-skip{color:#3a1a02}
+@keyframes dropIn{from{opacity:0;transform:translateY(-60px) rotate(-6deg)}to{opacity:1;transform:none}}
+/* Німе кіно */
+.th-silent{background:#0d0d0d!important;animation:proj .15s infinite}
+.th-silent .sp-in{border:2px solid #d8d2c0;outline:1px solid #d8d2c0;outline-offset:6px;padding:34px 30px;max-width:min(700px,86vw)}
+.th-silent .sp-q{color:#efe9d6;font-style:italic;opacity:0;animation:silentIn 1.6s .5s forwards}
+.th-silent .sp-cap{color:#efe9d6}
+@keyframes silentIn{to{opacity:1}}
+@keyframes proj{0%,100%{filter:brightness(1)}50%{filter:brightness(.88)}}
+/* Магія */
+.th-magic{background:radial-gradient(ellipse at 50% 30%,#1f2a4a,#07080f 70%)!important}
+.th-magic .sp-q{color:#ffe3a3;text-shadow:0 0 10px rgba(255,200,90,.75),0 0 28px rgba(255,170,60,.45)}
+.th-magic .sp-q span{opacity:0;animation:magicIn .9s forwards}
+.th-magic .sp-cap{color:#ffe9a8}
+@keyframes magicIn{from{opacity:0;filter:blur(10px);transform:scale(1.4)}to{opacity:1;filter:none;transform:none}}
+/* Аніме */
+.th-anime{background:radial-gradient(circle,#fff 0,#ffe4ef 40%,#ff7eb6 100%)!important;color:#1a1a1a}
+.th-anime .sp-q{color:#111;font-weight:900;-webkit-text-stroke:1px #111;text-shadow:4px 4px 0 #ff2f8f}
+.th-anime .sp-q span{opacity:0;animation:punch .38s cubic-bezier(.2,1.8,.4,1) forwards}
+.th-anime .sp-cap,.th-anime .sp-skip{color:#111}
+@keyframes punch{from{opacity:0;transform:scale(2.4) rotate(-8deg)}to{opacity:1;transform:none}}
+/* Комікс */
+.th-comic{background:#ffd60a radial-gradient(#e63946 1.6px,transparent 1.8px) 0 0/14px 14px!important;color:#000}
+.th-comic .sp-in{background:#fff;border:4px solid #000;border-radius:28px;box-shadow:8px 8px 0 #000;padding:26px 24px;max-width:min(680px,88vw)}
+.th-comic .sp-q{color:#000;font-size:clamp(20px,4.6vw,38px);text-transform:uppercase}
+.th-comic .sp-q span{opacity:0;animation:pop .45s cubic-bezier(.2,1.6,.4,1) forwards}
+.th-comic .sp-cap,.th-comic .sp-skip{color:#000}
+@keyframes pop{from{opacity:0;transform:scale(.2) rotate(12deg)}to{opacity:1;transform:none}}
+/* VHS */
+.th-vhs{background:linear-gradient(180deg,#120027,#2b0a3d 60%,#ff6a3d)!important;animation:track 4s infinite}
+.th-vhs::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 2px,transparent 2px 4px);z-index:1}
+.th-vhs::after{content:"▶ PLAY";position:absolute;top:calc(20px + env(safe-area-inset-top));left:22px;font:700 20px "Unbounded",monospace;color:#fff;text-shadow:2px 0 #f0f,-2px 0 #0ff;z-index:3}
+.th-vhs .sp-q{font-style:italic;color:#fff;text-shadow:3px 0 #ff00c8,-3px 0 #00e5ff;opacity:0;animation:vhsIn 1.2s .4s forwards}
+.th-vhs .sp-cap{color:#ffd6f5}
+@keyframes vhsIn{0%{opacity:0;transform:translateX(-30px) skewX(20deg)}30%{opacity:1;transform:translateX(10px)}50%{transform:translateX(-4px) skewX(-6deg)}100%{opacity:1;transform:none}}
+@keyframes track{0%,92%,100%{transform:none}94%{transform:translateY(3px) skewX(1deg)}96%{transform:translateY(-2px)}}
+/* Пустеля */
+.th-dune{background:linear-gradient(180deg,#2a1608,#a9622a 55%,#e3a35b)!important}
+.th-dune .sp-q{color:#f6e0bd;text-transform:uppercase;letter-spacing:.32em;font-weight:300;font-size:clamp(18px,4.2vw,36px);line-height:1.6}
+.th-dune .sp-q span{opacity:0;animation:duneIn 1.1s forwards}
+.th-dune .sp-cap{color:#f6e0bd}
+@keyframes duneIn{from{opacity:0;filter:blur(6px);letter-spacing:.8em}to{opacity:1;filter:none}}
+/* Ромком */
+.th-romcom{background:#fffaf2 repeating-linear-gradient(180deg,transparent 0 33px,#d7e4f2 33px 34px)!important;color:#2a2a2a}
+.th-romcom::before{content:"";position:absolute;top:0;bottom:0;left:12%;width:2px;background:#f4a3a3;z-index:1}
+.th-romcom .sp-q{color:#c2185b;font-size:clamp(30px,7vw,64px);transform:rotate(-2deg)}
+.th-romcom .sp-cap,.th-romcom .sp-skip{color:#8a6d6d}
+/* Космос-2 */
+.th-cosmos{background:#000!important}
+.th-cosmos .ring{position:absolute;z-index:1;width:min(70vw,520px);aspect-ratio:1;border-radius:50%;box-shadow:0 0 60px 18px rgba(255,190,110,.55),inset 0 0 50px 10px rgba(255,170,80,.45);border:3px solid rgba(255,230,190,.8);animation:breathe 6s ease-in-out infinite}
+.th-cosmos .ring::after{content:"";position:absolute;left:-30%;right:-30%;top:48%;height:4%;border-radius:50%;background:linear-gradient(90deg,transparent,rgba(255,220,170,.9),transparent);filter:blur(2px)}
+.th-cosmos .sp-q{color:#f5efe6;letter-spacing:.06em;font-weight:300;text-shadow:0 0 18px #000}
+.th-cosmos .sp-q span{opacity:0;animation:noirIn 1.6s forwards}
+@keyframes breathe{50%{transform:scale(1.04)}}
+/* Казка */
+.th-tale{background:radial-gradient(ellipse at 50% 100%,#2b4f8a,#0b1630 70%)!important}
+.th-tale .sp-q{color:#fff7d6;font-size:clamp(34px,8vw,72px);font-weight:700;text-shadow:0 0 16px rgba(255,240,180,.5)}
+.th-tale .sp-q span{opacity:0;animation:bounceIn .7s cubic-bezier(.3,1.7,.5,1) forwards}
+.th-tale .sp-cap{color:#fff7d6}
+@keyframes bounceIn{from{opacity:0;transform:translateY(30px) scale(.6)}to{opacity:1;transform:none}}
+
+@media (prefers-reduced-motion:reduce){
+  .sp-q,.sp-q span,.th-space .sp-q{animation:none!important;opacity:1!important;transform:none!important}
+  .th-space .sp-in{position:relative;transform:none}
+  #splash,.th-silent,.th-vhs,.th-cosmos .ring{animation:none!important}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="app">
   <header>
-    <div><div class="eyebrow" id="srcLabel">Тю і Шо</div><h1>Кінотеатр</h1></div>
-    <div>
-      <button class="iconbtn" id="btnSettings" aria-label="Налаштування"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg></button>
-      <button class="iconbtn" id="btnAdd" aria-label="Додати"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 4v16M4 12h16"></path></svg></button>
-    </div>
+    <div><div class="eyebrow" id="today">Тю і Шо</div><h1>Тю і Шо</h1></div>
+    <div></div>
   </header>
-  <div class="seg" role="group" aria-label="Тип" id="types"></div>
-  <div class="pills" role="group" aria-label="Статус" id="statuses"></div>
-  <div class="grid" id="grid"></div>
-  <div class="empty" id="empty" hidden>Тут поки порожньо</div>
-  <div class="foot" id="foot"></div>
+
+  <div class="quote" id="quote"></div>
+  <div class="stats" id="stats"></div>
+
+  <div id="watchingSec"></div>
+  <div id="pickSec"></div>
+
+  <h2 class="sec">Новинки <a href="kino.html">Кінотеатр ›</a></h2>
+  <div class="seg" role="group" aria-label="Новинки" id="newsSeg"></div>
+  <div class="row" id="news" aria-live="polite"><div class="empty" style="width:100%">Завантажую новинки…</div></div>
+  <div class="note" id="newsNote"></div>
 </div>
 
-<div class="overlay" id="ov" hidden>
-  <button class="backdrop" id="ovBg" aria-label="Закрити"></button>
-  <div class="sheet" role="dialog" aria-modal="true" id="sheet"></div>
-</div>
+<div class="toast" id="toast" role="status" hidden></div>
 <div class="tabbar"><nav aria-label="Розділи">
-  <a href="index.html" aria-current="page"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="3"></rect><path d="M10 9.5v6l5-3z"></path></svg>Кінотеатр</a>
-  <a href="coins.html"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5.5"></circle><path d="M12 9.5v5M10.3 11h3.4"></path></svg>Нумізматика</a>
-  <a href="cameras.html"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H8l1.5-2h5L16 6h2.5A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"></path><circle cx="12" cy="13" r="3.8"></circle></svg>Фотоапарати</a>
+  <a href="index.html" aria-current="page"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg>Головна</a>
+  <a href="kino.html"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="3"></rect><path d="M10 9.5v6l5-3z"></path></svg>Кінотеатр</a>
 </nav></div>
-<div class="lb" id="lb" hidden role="dialog" aria-label="Кадр"><img id="lbImg" alt=""><button class="x" id="lbX" aria-label="Закрити">×</button><button class="pv" id="lbPv" aria-label="Попередній кадр">‹</button><button class="nx" id="lbNx" aria-label="Наступний кадр">›</button><div class="cnt" id="lbCnt"></div></div>
-<div class="toast" id="toast" role="status" hidden><span id="toastText"></span><button id="toastUndo">Скасувати</button></div>
 
 <script>
 {
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const stripHtml = h => { try { return new DOMParser().parseFromString(String(h||''), 'text/html').body.textContent.trim(); } catch(e){ return String(h||'').replace(/<[^>]+>/g,''); } };
 const store = { get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } }, set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} } };
-const STAR = '<svg width="12" height="12" viewBox="0 0 24 24" fill="var(--star)" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>';
-const CHECK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-const LABEL = { watching:'Дивлюся', planned:'Планую', watched:'Переглянуто' };
-const TYPE = { movie:'Фільм', series:'Серіал', anime:'Аніме' };
 const TINTS = ['#5E5CE6','#FF9F0A','#30B0C7','#FF375F','#32D74B','#BF5AF2','#0A84FF','#AC8E68'];
-const tint = id => { let h=0; for (const c of id) h=(h*31+c.charCodeAt(0))%997; return TINTS[h%TINTS.length]; };
-const initials = t => t.split(/[\s:]+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const tint = id => { let h=0; for (const c of String(id)) h=(h*31+c.charCodeAt(0))%997; return TINTS[h%TINTS.length]; };
+const initials = t => String(t||'').split(/[\s:]+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const isRussian = x => /(^|\W)(RU|ru|Russian|Russia|рос)/.test([x.origin_country, x.original_language, x.language, x.country].flat().filter(Boolean).join(' '));
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ---------- стартовий список ---------- */
-const SEED = [
- ['a1','anime','watching','Фрірен, що проводжає в останню путь','Sousou no Frieren','2023','8.9',{ep:18,total:28},'Ельфійка-чарівниця, яка пережила своїх товаришів-героїв, вирушає в нову подорож і вчиться розуміти людей, яких колись ледве помічала.'],
- ['a2','anime','watching','Підняття рівня наодинці','Solo Leveling','2024','',{ep:7,total:12},'Найслабший мисливець на монстрів отримує таємничу систему, яка робить його сильнішим після кожного бою.'],
- ['a3','anime','watched','Атака титанів','Attack on Titan','2013','',{},'Людство ховається за велетенськими стінами від титанів-людожерів, доки юний Ерен не присягає знищити їх усіх.'],
- ['a4','anime','watched','Ковбой Бібоп','Cowboy Bebop','1998','',{},'Мисливці за головами на старому кораблі «Бібоп» мандрують Сонячною системою, ганяючись за нагородами й тікаючи від минулого.'],
- ['a5','anime','planned','Сталевий алхімік: Братерство','Fullmetal Alchemist: Brotherhood','2009','',{},'Брати Елріки шукають філософський камінь, щоб повернути тіла, втрачені під час забороненого алхімічного ритуалу.'],
- ['a6','anime','planned','Сага про Вінланд','Vinland Saga','2019','',{},'Юний Торфінн воює серед вікінгів, мріючи помститися вбивці батька, і поступово переосмислює ціну насильства.'],
- ['s1','series','planned','Аркейн','Arcane','2021','9.0',{},'Дві сестри опиняються по різні боки конфлікту між багатим Пілтовером і його темним підземним містом Зауном.'],
- ['s2','series','planned','Тед Лассо','Ted Lasso','2020','8.8',{},'Американського тренера з американського футболу запрошують очолити англійський футбольний клуб, хоча цієї гри він майже не знає.'],
- ['s3','series','planned','Одні з нас','The Last of Us','2023','8.7',{},'Контрабандист Джоел веде дівчинку Еллі через Америку, спустошену грибковою пандемією.'],
- ['s4','series','planned','Розділення','Severance','2022','8.7',{},'Працівникам корпорації розділили пам\'ять на робочу й особисту, і вони починають підозрювати, що компанія щось приховує.'],
- ['s5','anime','planned','Блакитноокий самурай','Blue Eye Samurai','2023','8.7',{},'У Японії доби Едо мечниця змішаного походження вирушає помститися чотирьом чоловікам, один з яких — її батько.'],
- ['s6','anime','planned','Непереможний','Invincible','2021','8.7',{},'Син наймогутнішого супергероя Землі отримує власні сили й дізнається темну правду про батька.'],
- ['s7','series','planned','Шоґун','Shogun','2024','8.6',{},'Англійський штурман потрапляє до Японії 1600 року й опиняється в центрі боротьби за владу між даймьо.'],
- ['s8','series','planned','Кіберпанк: Бігуни на межі','Cyberpunk: Edgerunners','2022','8.6',{},'Хлопець із нетрів Найт-Сіті стає найманцем, щоб вижити в місті, де технології поглинають людей.'],
- ['s9','series','planned','Ведмідь','The Bear','2022','8.5',{},'Шеф із ресторану високої кухні повертається в Чикаго, щоб урятувати сендвіч-закусочну загиблого брата.'],
- ['s10','series','planned','Пінгвін','The Penguin','2024','8.5',{},'Освальд Кобб пробивається на вершину кримінального світу Ґотема після подій фільму «Бетмен».'],
- ['s11','series','planned','Хід королеви','The Queen\'s Gambit','2020','8.5',{},'Сирота з неймовірним шаховим талантом підкорює шаховий світ 1960-х, водночас борючись із залежностями.'],
- ['s12','series','planned','Незвичайна адвокатка У Йон У','Extraordinary Attorney Woo','2022','8.5',{},'Молода юристка з аутизмом і феноменальною пам\'яттю починає працювати у великій сеульській фірмі.'],
- ['s13','series','planned','Андор','Andor','2022','8.4',{},'Шлях Кассіана Андора від дрібного злодія до одного з тих, хто запалив повстання проти Імперії.'],
- ['s14','series','planned','Дім Дракона','House of the Dragon','2022','8.3',{},'За два століття до «Гри престолів» дім Таргарієнів розколює боротьба за Залізний трон.'],
- ['s15','series','planned','Фоллаут','Fallout','2024','8.3',{},'Мешканка підземного сховища виходить на поверхню зруйнованого Лос-Анджелеса, щоб знайти викраденого батька.'],
- ['s16','series','planned','Миротворець','Peacemaker','2022','8.3',{},'Самовпевнений антигерой, готовий на все заради миру, отримує нове таємне урядове завдання.'],
- ['s17','series','planned','Пантеон','Pantheon','2022','8.3',{},'Дівчина отримує повідомлення від померлого батька, чию свідомість завантажили в хмару.'],
- ['s18','series','planned','Локі','Loki','2021','8.2',{},'Бог підступності потрапляє до Управління часових змін і мусить виправляти порушення в потоці часу.'],
- ['s19','series','planned','Повільні коні','Slow Horses','2022','8.2',{},'Агенти MI5, що провалили кар\'єру, відбувають заслання в Слау-Хаусі — і раз у раз потрапляють у справжні операції.'],
- ['s21','series','planned','Юнацтво','Adolescence','2025','8.1',{},'13-річного хлопця заарештовують за вбивство однокласниці, і родина намагається зрозуміти, як таке могло статися.'],
- ['s22','series','planned','Таємниця бункера','Silo','2023','8.1',{},'Тисячі людей живуть у глибокому підземному сховищі, не знаючи, хто його збудував і що насправді на поверхні.'],
- ['s23','series','planned','Джентльмени','The Gentlemen','2024','8.1',{},'Аристократ успадковує родовий маєток і дізнається, що на його землі працює наркоімперія.'],
- ['s25','series','planned','Гра в кальмара','Squid Game','2021','8.0',{},'Сотні людей у боргах грають у дитячі ігри за величезний приз, а програш у них означає смерть.'],
- ['s26','series','planned','Венздей','Wednesday','2022','8.0',{},'Венздей Аддамс вступає до академії «Невермор», розслідує серію вбивств і вчиться опановувати свої здібності.'],
- ['s27','series','planned','Сварка','Beef','2023','8.0',{},'Дрібна сутичка двох незнайомців на парковці переростає у ворожнечу, яка руйнує обидва їхні життя.'],
- ['s28','series','planned','Покерфейс','Poker Face','2023','7.9',{},'Жінка, яка безпомилково розпізнає брехню, мандрує Америкою й мимоволі розкриває вбивства.'],
- ['s30','series','planned','Білий лотос','The White Lotus','2021','7.9',{},'Гості й персонал розкішного курорту за тиждень відпочинку показують свої найгірші сторони.'],
- ['m1','movie','watched','Дюна: Частина друга','Dune: Part Two','2024','',{},'Пол Атрід об\'єднується з фрименами, щоб помститися за родину, і мусить обирати між коханням і долею всесвіту.'],
- ['m2','movie','watched','Оппенгеймер','Oppenheimer','2023','',{},'Історія фізика Роберта Оппенгеймера, який очолив створення атомної бомби, і того, чим це обернулося для нього самого.'],
- ['m3','movie','watched','Інтерстеллар','Interstellar','2014','',{},'Астронавти вирушають крізь червоточину шукати новий дім для людства, поки Земля повільно вмирає.'],
- ['m4','movie','planned','Той, хто біжить по лезу 2049','Blade Runner 2049','2017','',{},'Офіцер-реплікант К розкриває таємницю, здатну зруйнувати крихкий порядок між людьми й штучними людьми.'],
- ['m5','movie','planned','Сім самураїв','Seven Samurai','1954','',{},'Бідне село наймає сімох ронінів, щоб захиститися від бандитів, які щороку грабують урожай.'],
- ['n1','movie','planned','Wifelike','Wifelike','2022','',{},'Детектив, який втратив дружину, отримує штучну людину, створену за її подобою, і поступово відкриває темний бік цієї технології.'],
- ['n2','movie','planned','Любов зла','Shallow Hal','2001','',{},'Поверхового чоловіка гіпнотизують, і він починає бачити внутрішню красу людей — і закохується в дівчину, яку раніше не помітив би.'],
- ['n3','series','planned','Привіт, майбутнє!','Hello Tomorrow!','2023','6.3',{},'У ретрофутуристичній Америці харизматичний торговець продає людям ділянки на Місяці.'],
- ['n4','movie','planned','Земля майбутнього','Tomorrowland','2015','',{},'Дівчина-підліток і колишній юний винахідник шукають таємничий світ майбутнього, щоб урятувати Землю.'],
- ['n5','movie','planned','Екзистенція','eXistenZ','1999','',{},'Розробниця гри у віртуальну реальність тікає від замахувачів і разом з охоронцем занурюється у власну гру, де межа між світами стирається.'],
- ['n6','movie','planned','Король говорить!','The King\'s Speech','2010','',{},'Майбутній король Георг VI долає заїкання з допомогою незвичного логопеда напередодні Другої світової.'],
- ['n7','movie','planned','Неймовірна історія Острова троянд','Rose Island','2020','',{},'Італійський інженер 1968 року будує в морі власну платформу й проголошує її незалежною державою.'],
- ['n8','movie','planned','Звук металу','Sound of Metal','2019','',{},'Барабанщик металевого гурту раптово втрачає слух і мусить навчитися жити в новому для себе світі.'],
- ['n9','series','planned','Периферійні пристрої','The Peripheral','2022','',{},'Дівчина з американської глибинки тестує гарнітуру віртуальної реальності й опиняється в Лондоні майбутнього.'],
- ['n10','series','planned','Вічність','Forever','2014','',{},'Судмедексперт Генрі Морган не може померти: щоразу після смерті він оживає у воді й шукає розгадку свого безсмертя.'],
- ['n11','movie','planned','Тобі слід було піти','You Should Have Left','2020','',{},'Родина орендує сучасний будинок в Уельсі, але простір у ньому живе за власними зловісними правилами.'],
- ['n12','anime','planned','Повсякденне життя безсмертного короля','The Daily Life of the Immortal King','2020','',{},'Наймогутніший культиватор усіх часів хоче просто жити як звичайний школяр і ховає свою силу.'],
- ['n13','movie','planned','Чудова історія Генрі Шугара','The Wonderful Story of Henry Sugar','2023','',{},'Багатий гравець дізнається про техніку, яка дозволяє бачити без очей, і вирішує використати її в казино.'],
- ['n14','movie','planned','Експеримент «Офіс»','The Belko Experiment','2016','',{},'Співробітників офісу в Боготі замикають у будівлі й наказують убивати одне одного.'],
- ['n15','anime','planned','Чорна конюшина','Black Clover','2017','',{},'Хлопець без жодної магії у світі, де магія є в усіх, мріє стати Королем-чарівником.'],
- ['n16','movie','planned','Елізіум','Elysium','2013','',{},'У 2154 році багаті живуть на розкішній орбітальній станції, а чоловік із виснаженої Землі ризикує всім, щоб туди потрапити.'],
- ['n17','anime','planned','The Eminence in Shadow','The Eminence in Shadow','2022','',{},'Хлопець, одержимий мрією стати тіньовим володарем, перероджується в іншому світі й вигадує таємну організацію, яка виявляється справжньою.'],
- ['n18','series','planned','Лялечка','Dollface','2019','',{},'Після розриву з хлопцем дівчина намагається повернути подруг, яких закинула заради стосунків.'],
- ['n19','movie','planned','Друзі з відпустки','Vacation Friends','2021','',{},'Пара знайомиться на відпочинку з шаленими новими друзями, а згодом ті з\'являються на їхньому весіллі.'],
- ['n20','anime','planned','Видатні звірі','Beastars','2019','',{},'У школі антропоморфних тварин вовк Легосі бореться з хижими інстинктами після вбивства однокласника.'],
- ['n21','movie','planned','Таймер','TiMER','2009','',{},'У світі, де годинник на зап\'ясті відлічує час до зустрічі з коханням, таймер героїні досі порожній.'],
- ['n22','series','planned','Фундація','Foundation','2021','',{},'Математик передбачає падіння Галактичної імперії й створює Фундацію, щоб скоротити темні віки після неї.'],
- ['n23','movie','planned','Три тисячі років бажань','Three Thousand Years of Longing','2022','',{},'Дослідниця міфів у Стамбулі звільняє джина, і той розповідає їй історії свого довгого полону, пропонуючи три бажання.'],
- ['n24','movie','planned','Мільйонер із нетрів','Slumdog Millionaire','2008','',{},'Хлопець із нетрів Мумбаї крок за кроком виграє телевікторину, а відповіді йому підказує власне життя.'],
- ['n25','series','planned','Зло','Evil','2019','',{},'Психологиня-скептик разом зі священником і технарем розслідує випадки, які Церква підозрює як одержимість.'],
- ['n26','anime','planned','Далекий паладин','The Faraway Paladin','2021','',{},'Хлопчика виховують троє нежитів у руїнах міста, і він готується стати паладином.'],
- ['n27','series','planned','Рай','Paradise','2025','7.9',{},'Агент Секретної служби розслідує вбивство президента в місті-бункері, збудованому після катастрофи.'],
- ['n28','movie','planned','Прибуття','Arrival','2016','',{},'Лінгвістку запрошують розшифрувати мову інопланетян, що прибули на Землю, і це змінює її сприйняття часу.'],
- ['n29','series','planned','Екстраординарна','Extraordinary','2023','',{},'У світі, де кожен у 18 років отримує суперздібність, 25-річна Джен досі чекає на свою.'],
- ['n30','movie','planned','Містер К','Mr. K','2024','',{},'Мандрівний фокусник опиняється в готелі, з якого неможливо вийти, і що далі блукає, то дивнішим стає це місце.'],
- ['n31','movie','planned','Новітній заповіт','The Brand New Testament','2015','',{},'Бог живе в Брюсселі й знущається з людей, доки його донька не розсилає всім дати їхньої смерті.'],
- ['n32','anime','planned','Єдиноріг: Вічні воїни','Unicorn: Warriors Eternal','2023','',{},'Вічні воїни щоразу перероджуються в нових тілах, щоб знову захищати світ від темряви.'],
- ['n33','movie','planned','Все завжди і водночас','Everything Everywhere All at Once','2022','',{},'Власниця пральні дізнається, що лише вона може врятувати мультивсесвіт, перестрибуючи між своїми іншими життями.'],
- ['n34','movie','planned','Проєкт «Аве Марія»','Project Hail Mary','2026','',{},'Вчитель прокидається сам на космічному кораблі без пам\'яті й поступово розуміє, що від його місії залежить порятунок Землі.'],
- ['n35','anime','planned','Гачіакута','Gachiakuta','2025','',{},'Хлопця несправедливо звинувачують у вбивстві й скидають у Безодню, де він стає борцем із монстрами зі сміття.'],
- ['n36','anime','planned','Call Me Lord: Eerie Bailiff','Call Me Lord Eerie Bailiff','2026','',{},'Світ поглинула вічна ніч, а головний герой стає потойбічним приставом, який полює на нечисть.']
-].map(([id,type,status,title,orig,year,imdb,x,overview]) => ({ id, type, status, title, orig, year, imdb, overview, ep:x.ep, total:x.total }));
-
-// ПРАВИЛО: жодних російських фільмів чи серіалів.
-const BANNED_IDS = ['s20','s24','s29'];
-const isRussian = x => {
-  const t = [x.origin_country, x.original_language, x.language, x.country, x.description].flat().filter(Boolean).join(' ');
-  return /(^|\W)(RU|ru|Russian|Russia|рос)/.test(t);
-};
-let removed = store.get('lists.removed', []);
-let items = (store.get('lists.items', null) || []).filter(i => !BANNED_IDS.includes(i.id) && !i.ru);
-SEED.forEach(sd => { if (!items.some(i => i.id === sd.id) && !removed.includes(sd.id)) items.push(sd); });
-// виправлення типів зі стартового списку (напр. «Синій самурай», «Непереможний» → аніме)
-const PIN = { tvm: {"s1": 55138, "s2": 44458, "s3": 46562, "s4": 44933, "s5": 51112, "s6": 37196, "s7": 37336, "s8": 48945, "s9": 54198, "s10": 60920, "s11": 41428, "s12": 62357, "s13": 52341, "s14": 44778, "s15": 49041, "s16": 50603, "s17": 46656, "s18": 41007, "s19": 45039, "s21": 78570, "s22": 38052, "s23": 64992, "s25": 43687, "s26": 53647, "s27": 54285, "s28": 54128, "s30": 51394, "n3": 55121, "n9": 37781, "n10": 46, "n18": 34162, "n22": 35951, "n25": 40357, "n27": 75030, "n29": 54828, "n32": 51576, "a1": 69956, "a2": 64632}, wt: {"m1": "Dune: Part Two", "m2": "Oppenheimer (film)", "m3": "Interstellar (film)", "m4": "Blade Runner 2049", "m5": "Seven Samurai", "n1": "Wifelike", "n2": "Shallow Hal", "n4": "Tomorrowland (film)", "n5": "EXistenZ", "n6": "The King's Speech", "n7": "Rose Island (film)", "n8": "Sound of Metal", "n11": "You Should Have Left", "n13": "The Wonderful Story of Henry Sugar (film)", "n14": "The Belko Experiment", "n16": "Elysium (2013 film)", "n19": "Vacation Friends", "n21": "TiMER", "n23": "Three Thousand Years of Longing", "n24": "Slumdog Millionaire", "n28": "Arrival (film)", "n31": "The Brand New Testament", "n33": "Everything Everywhere All at Once", "n34": "Project Hail Mary (film)"}, tvmOnly: ["s5", "s6", "n32"] };
-items.forEach(i => { if (PIN.tvm[i.id]) i.tvm = PIN.tvm[i.id]; if (PIN.wt[i.id]) i.wt = PIN.wt[i.id]; if (PIN.tvmOnly.includes(i.id)) i.tvmOnly = true; });
-const TYPE_FIX = { s5: 'anime', s6: 'anime' };
-const TITLE_FIX = {"a1": "Фрірен, що проводжає в останню путь", "s5": "Блакитноокий самурай", "s21": "Юнацтво", "s22": "Таємниця бункера", "s27": "Сварка", "n17": "The Eminence in Shadow"};
-items.forEach(i => { if (TITLE_FIX[i.id] && i.title !== TITLE_FIX[i.id]) i.title = TITLE_FIX[i.id]; });
-let typeFixed = [];
-items.forEach(i => { if (TYPE_FIX[i.id] && i.type !== TYPE_FIX[i.id]) { i.type = TYPE_FIX[i.id]; typeFixed.push(i.id); } });
-let meta = store.get('lists.meta', {});
-if (store.get('lists.cachev', 0) < 4) { meta = {}; store.set('lists.meta', {}); store.set('lists.extras', {}); store.set('lists.cachev', 4); }
-let ui = Object.assign({ type:'series', status:'planned' }, store.get('lists.ui', {}));
-if (typeFixed.length) { typeFixed.forEach(id => { delete meta[id]; }); store.set('lists.meta', meta); const ex = store.get('lists.extras', {}); typeFixed.forEach(id => delete ex[id]); store.set('lists.extras', ex); store.set('lists.items', items); }
-let tmdbKey = store.get('lists.tmdb', '');
-items.forEach(i => { if (i.my) { i.pep = Math.ceil(i.my / 2); delete i.my; } });
-const save = () => { store.set('lists.items', items); store.set('lists.ui', ui); };
-const saveMeta = () => store.set('lists.meta', meta);
-
-/* ---------- джерела даних ---------- */
-const getJSON = async (url, opts) => { const r = await fetch(url, opts); if (!r.ok) throw new Error(r.status); return r.json(); };
-const yearOf = s => String(s||'').slice(0,4);
-
-async function fromTMDB(it){
-  const kind = it.type === 'movie' ? 'movie' : 'tv';
-  const q = encodeURIComponent(it.orig || it.title);
-  const base = `https://api.themoviedb.org/3/search/${kind}?api_key=${encodeURIComponent(tmdbKey)}&query=${q}&language=uk-UA`;
-  const d = await getJSON(base + (it.year ? (kind==='movie' ? '&year=' : '&first_air_date_year=') + yearOf(it.year) : ''));
-  let r = (d.results||[]).find(x => !isRussian(x));
-  if (!r) { const d2 = await getJSON(base); r = (d2.results||[]).find(x => !isRussian(x)); }
-  if (!r) return null;
-  let overview = r.overview;
-  if (!overview) { try { const en = await getJSON(`https://api.themoviedb.org/3/${kind}/${r.id}?api_key=${encodeURIComponent(tmdbKey)}&language=en-US`); overview = en.overview; } catch(e){} }
-  return { poster: r.poster_path ? 'https://image.tmdb.org/t/p/w342' + r.poster_path : '', rating: r.vote_average ? r.vote_average.toFixed(1) : '', rsrc:'TMDB', overview, origFound: r.original_name || r.original_title, src:'TMDB', tmdbId: r.id, tmdbKind: kind };
-}
-const pickYear = (list, yr) => { const y = Number(yearOf(yr)); if (!y) return list[0]; return list.find(x => x.y === y) || list.find(x => Math.abs(x.y - y) <= 1) || list[0]; };
-async function tvmazeShow(it){
-  if (it.tvm) return getJSON('https://api.tvmaze.com/shows/' + it.tvm);
-  const res = await getJSON('https://api.tvmaze.com/search/shows?q=' + encodeURIComponent(it.orig || it.title));
-  const list = res.map(r => r.show).filter(sh => !isRussian({ language: sh.language, country: (sh.network||sh.webChannel||{}).country && (sh.network||sh.webChannel).country.code })).map(sh => Object.assign(sh, { y: Number(yearOf(sh.premiered)) }));
-  if (!list.length) return null;
-  const sh = pickYear(list, it.year); it.tvm = sh.id; save();
-  return sh;
-}
-async function fromTVmaze(it){
-  const s = await tvmazeShow(it); if (!s) return null;
-  return { poster: s.image ? (s.image.medium || s.image.original).replace('http:','https:') : '', rating: s.rating && s.rating.average ? s.rating.average.toFixed(1) : '', rsrc:'TVmaze', overview: stripHtml(s.summary), genres: (s.genres||[]).join(', '), src:'TVmaze', tvmazeId: s.id };
-}
-async function anilistMedia(it, fields){
-  if (it.ani) { const d = await getJSON('https://graphql.anilist.co', { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ query: `query($id:Int){Media(id:$id,type:ANIME){id startDate{year} ${fields}}}`, variables:{ id: it.ani } }) }); return d.data && d.data.Media; }
-  const d = await getJSON('https://graphql.anilist.co', { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ query: `query($s:String){Page(perPage:10){media(search:$s,type:ANIME,sort:SEARCH_MATCH){id startDate{year} ${fields}}}}`, variables:{ s: it.orig || it.title } }) });
-  const list = ((d.data && d.data.Page && d.data.Page.media) || []).map(m => Object.assign(m, { y: m.startDate && m.startDate.year }));
-  if (!list.length) return null;
-  const m = pickYear(list, it.year); it.ani = m.id; save();
-  return m;
-}
-async function fromAniList(it){
-  if (it.tvmOnly) return fromTVmaze(it);
-  const m = await anilistMedia(it, 'coverImage{large} averageScore episodes genres description(asHtml:false)'); if (!m) return it.tvm ? fromTVmaze(it) : null;
-  return { poster: m.coverImage && m.coverImage.large || '', rating: m.averageScore ? (m.averageScore/10).toFixed(1) : '', rsrc:'AniList', overview: stripHtml(m.description), episodes: m.episodes, genres:(m.genres||[]).join(', '), src:'AniList', anilistId: m.id };
-}
-async function wikiByTitle(title){
-  const d = await getJSON(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&titles=${encodeURIComponent(title)}&prop=extracts|pageimages&exintro=1&explaintext=1&exsentences=3&piprop=thumbnail|name&pithumbsize=500&pilicense=any`);
-  const p = d.query && d.query.pages && Object.values(d.query.pages)[0];
-  if (!p || 'missing' in p) return null;
-  return { poster: p.thumbnail ? p.thumbnail.source : '', overview: p.extract || '', src:'Вікіпедія', wikiTitle: p.title, pageImage: p.pageimage || '' };
-}
-async function fromWiki(lang, q){
-  const url = `https://${lang}.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=1&gsrsearch=${encodeURIComponent(q)}&prop=extracts|pageimages&exintro=1&explaintext=1&exsentences=3&piprop=thumbnail&pithumbsize=500&pilicense=any`;
-  const d = await getJSON(url);
-  const p = d.query && d.query.pages && Object.values(d.query.pages)[0];
-  if (!p) return null;
-  return { poster: p.thumbnail ? p.thumbnail.source : '', overview: p.extract || '', src:'Вікіпедія', wikiTitle: p.title };
-}
-async function loadMeta(it, force){
-  if (!force && meta[it.id] && meta[it.id].t > Date.now() - 1000*60*60*24*14) return meta[it.id];
-  let m = null;
-  try {
-    if (tmdbKey) m = await fromTMDB(it);
-    else if (it.type === 'series' || it.tvmOnly) m = await fromTVmaze(it);
-    else if (it.type === 'anime') m = await fromAniList(it);
-    else m = (it.wt && await wikiByTitle(it.wt)) || await fromWiki('en', `${it.orig || it.title} ${yearOf(it.year)} film`);
-  } catch(e) { m = null; }
-  if ((!m || !m.poster) && it.type !== 'anime' && !it.wt) {
-    try { const w = await fromWiki('en', `${it.orig || it.title} ${yearOf(it.year)} ${it.type==='movie'?'film':'TV series'}`); if (w && w.poster) m = Object.assign({}, w, m || {}, { poster: w.poster }); } catch(e){}
+/* ---------- фраза без повторів ---------- */
+const PH = window.TYUISHO_PHRASES || ['Час для хорошого кіно.'];
+function nextPhrase(){
+  let order = store.get('home.order', null), pos = store.get('home.pos', 0);
+  if (!Array.isArray(order) || order.length !== PH.length || pos >= order.length) {
+    order = PH.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+    pos = 0; store.set('home.order', order);
   }
-  if (!it.overview && !(m && m.overview && m.src==='TMDB')) {
-    try { const uk = await fromWiki('uk', `${it.title} ${yearOf(it.year)} ${it.type==='movie'?'фільм':'серіал'}`); if (uk && uk.overview) m = Object.assign(m || {}, { ukOverview: uk.overview }); } catch(e){}
-  }
-  if (!m) return meta[it.id] || null;
-  m.t = Date.now();
-  meta[it.id] = m; saveMeta();
-  return m;
-}
-// черга, щоб не засипати API запитами
-let queue = [], busy = 0;
-function want(it){ if (meta[it.id] && meta[it.id].t > Date.now() - 1000*60*60*24*14) return; if (!queue.includes(it)) queue.push(it); pump(); }
-function pump(){ while (busy < 3 && queue.length){ const it = queue.shift(); busy++; loadMeta(it).then(() => { busy--; paintPoster(it); pump(); if ($('#ov').dataset.id === it.id) openSheet(it.id); }); } }
-
-/* ---------- рендер ---------- */
-const ratingOf = it => { const m = meta[it.id]; if (it.imdb) return { v: it.imdb, s:'IMDb' }; if (m && m.rating) return { v: m.rating, s: m.rsrc }; return { v:'—', s:'' }; };
-function posterHTML(it, big){
-  const m = meta[it.id];
-  return `<span class="poster" style="background:${tint(it.id)}${big?';font-size:34px':''}" data-p="${esc(it.id)}">${esc(initials(it.title))}${m && m.poster ? `<img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(m.poster)}" onload="this.classList.add('ok')" onerror="this.remove()">` : ''}</span>`;
-}
-function paintPoster(it){
-  const m = meta[it.id]; if (!m || !m.poster) return;
-  document.querySelectorAll(`[data-p="${CSS.escape(it.id)}"]`).forEach(el => { if (!el.querySelector('img')) el.insertAdjacentHTML('beforeend', `<img alt="" referrerpolicy="no-referrer" src="${esc(m.poster)}" onload="this.classList.add('ok')" onerror="this.remove()">`); });
-  document.querySelectorAll(`[data-r="${CSS.escape(it.id)}"]`).forEach(el => { el.innerHTML = STAR + esc(ratingOf(it).v) + (it.status === 'watched' && it.pep ? `<span class="mine" title="Мій рейтинг"><span class="peps">${'🌶️'.repeat(Math.min(it.pep, 4)) + (it.pep === 5 ? '🔥' : '')}</span></span>` : ''); });
-}
-function render(){
-  $('#types').innerHTML = [['movie','Фільми'],['series','Серіали'],['anime','Аніме']].map(([k,l]) => `<button aria-pressed="${ui.type===k}" data-type="${k}">${l}</button>`).join('');
-  const ofType = items.filter(i => i.type === ui.type);
-  $('#statuses').innerHTML = ['watching','planned','watched'].map(k => `<button aria-pressed="${ui.status===k}" data-status="${k}">${LABEL[k]} ${ofType.filter(i=>i.status===k).length}</button>`).join('');
-  const shown = ofType.filter(i => i.status === ui.status);
-  $('#grid').innerHTML = shown.map(it => `
-    <div class="item">
-      <button class="open" data-open="${esc(it.id)}" aria-label="${esc(it.title)}, рейтинг ${esc(ratingOf(it).v)}">${posterHTML(it)}<span class="ttl">${esc(it.title)}</span><span class="rt" data-r="${esc(it.id)}">${STAR}${esc(ratingOf(it).v)}${it.status === 'watched' && it.pep ? `<span class="mine" title="Мій рейтинг"><span class="peps">${'🌶️'.repeat(Math.min(it.pep, 4)) + (it.pep === 5 ? '🔥' : '')}</span></span>` : ''}</span></button>
-      <button class="check" data-check="${esc(it.id)}" aria-pressed="${it.status==='watched'}" aria-label="${it.status==='watched' ? 'Повернути з переглянутих' : 'Позначити переглянутим'}">${CHECK}</button>
-    </div>`).join('');
-  $('#empty').hidden = shown.length > 0;
-  $('#foot').innerHTML = tmdbKey
-    ? 'Дані: <a href="https://www.themoviedb.org" rel="noopener">TMDB</a>. This product uses the TMDB API but is not endorsed or certified by TMDB.'
-    : 'Дані: <a href="https://www.tvmaze.com" rel="noopener">TVmaze</a>, <a href="https://anilist.co" rel="noopener">AniList</a>, <a href="https://www.wikipedia.org" rel="noopener">Вікіпедія</a>. Для описів українською й кращих постерів додай ключ TMDB у налаштуваннях.';
-  shown.forEach(want);
+  store.set('home.pos', pos + 1);
+  return PH[order[pos]];
 }
 
-/* ---------- статуси та скасування ---------- */
-let undoSnap = null, toastT;
-function toast(text){ $('#toastText').textContent = text; $('#toast').hidden = false; clearTimeout(toastT); toastT = setTimeout(() => $('#toast').hidden = true, 4500); }
-function setStatus(id, next, ep){
-  const it = items.find(i => i.id === id); if (!it) return;
-  undoSnap = JSON.stringify(items);
-  if (next === 'watched' && it.status !== 'watched') { it.prev = it.status; it.watchedAt = Date.now(); }
-  it.status = next; if (ep != null) it.ep = ep;
-  save(); render(); toast(`«${it.title}» → ${LABEL[next]}`);
-  if (!$('#ov').hidden && $('#ov').dataset.id === id) openSheet(id);
+/* ---------- теми заставки ---------- */
+const THEMES = [
+  { id:'matrix',  cap:'у дусі «Матриці»',         font:'JetBrains Mono', w:'700', fx:'matrix', rev:'type' },
+  { id:'space',   cap:'у дусі космічних саг',      font:'Oswald',         w:'600', fx:'stars',  rev:'crawl' },
+  { id:'noir',    cap:'у дусі нуару',              font:'Playfair Display', w:'1,700', fx:'rain', rev:'words' },
+  { id:'horror',  cap:'у дусі «Дивних див»',       font:'Rubik Wet Paint', w:'400', fx:'grain', rev:'letters' },
+  { id:'cyber',   cap:'у дусі кіберпанку',         font:'Rubik Glitch',   w:'400', fx:'none',   rev:'letters' },
+  { id:'pixel',   cap:'у дусі 8-бітних ігор',      font:'Press Start 2P', w:'400', fx:'none',   rev:'type' },
+  { id:'western', cap:'у дусі вестернів',          font:'Yeseva One',     w:'400', fx:'sand',   rev:'words' },
+  { id:'silent',  cap:'у дусі німого кіно',        font:'Cormorant Garamond', w:'1,600', fx:'grain', rev:'fade' },
+  { id:'magic',   cap:'у дусі «Гаррі Поттера»',    font:'Lobster',        w:'400', fx:'sparks', rev:'letters' },
+  { id:'anime',   cap:'у дусі аніме',              font:'Unbounded',      w:'900', fx:'speed',  rev:'words' },
+  { id:'comic',   cap:'у дусі коміксів',           font:'Rubik Mono One', w:'400', fx:'none',   rev:'words' },
+  { id:'vhs',     cap:'у дусі касет VHS',          font:'Unbounded',      w:'700', fx:'grain',  rev:'fade' },
+  { id:'dune',    cap:'у дусі «Дюни»',             font:'Oswald',         w:'300', fx:'sand',   rev:'letters' },
+  { id:'romcom',  cap:'у дусі ромкомів',           font:'Caveat',         w:'700', fx:'none',   rev:'type' },
+  { id:'cosmos',  cap:'у дусі «Інтерстеллара»',    font:'Cormorant Garamond', w:'300', fx:'stars', rev:'words' },
+  { id:'tale',    cap:'у дусі мультфільмів-казок', font:'Amatic SC',      w:'700', fx:'sparks', rev:'letters' }
+];
+const QS = new URLSearchParams(location.search);
+function pickTheme(){
+  const forced = THEMES.find(t => t.id === QS.get('theme')); if (forced) return forced;
+  const last = store.get('home.lastTheme', '');
+  const pool = THEMES.filter(t => t.id !== last);
+  const t = pool[Math.floor(Math.random() * pool.length)];
+  store.set('home.lastTheme', t.id); return t;
 }
-const unwatch = id => { const it = items.find(i => i.id === id); setStatus(id, it.prev && it.prev !== 'watched' ? it.prev : 'planned'); };
-$('#toastUndo').onclick = () => { if (undoSnap) { items = JSON.parse(undoSnap); undoSnap = null; save(); render(); if (!$('#ov').hidden && $('#ov').dataset.id) openSheet($('#ov').dataset.id); } $('#toast').hidden = true; };
-
-
-/* ---------- кадри та актори ---------- */
-const extrasCache = store.get('lists.extras', {});
-const WD = 'https://www.wikidata.org/w/api.php?format=json&origin=*&';
-const fp = (file, w) => 'https://commons.wikimedia.org/wiki/Special:FilePath/' + encodeURIComponent(file) + '?width=' + w;
-async function wikidataFilm(title){
-  const d = await getJSON(WD + 'action=wbgetentities&sites=enwiki&props=claims&titles=' + encodeURIComponent(title));
-  return Object.values(d.entities || {})[0] || null;
+function loadFont(t){
+  const italic = t.w.startsWith('1,');
+  const spec = italic ? `ital,wght@${t.w}` : `wght@${t.w}`;
+  const l = document.createElement('link'); l.rel = 'stylesheet';
+  l.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(t.font).replace(/%20/g,'+')}:${spec}&display=swap`;
+  document.head.appendChild(l);
+  const wait = new Promise(res => { l.onload = () => { (document.fonts ? document.fonts.load(`${italic ? 'italic ' : ''}${t.w.replace('1,','')} 40px "${t.font}"`, 'Тю і Шо') : Promise.resolve()).then(res, res); }; l.onerror = res; });
+  return Promise.race([wait, new Promise(r => setTimeout(r, 1400))]);
 }
-async function movieExtras(it){
-  const m = meta[it.id] || {};
-  let title = it.wt || m.wikiTitle;
-  if (!title) { const w = await fromWiki('en', `${it.orig || it.title} ${yearOf(it.year)} film`); title = w && w.wikiTitle; }
-  if (!title) return { shots: [], cast: [] };
-  const shots = [], cast = [];
-  // 1) кадри з трейлера (YouTube ID з Вікіданих, P1651)
-  let ent = null;
-  try { ent = await wikidataFilm(title); } catch(e) {}
-  const claims = (ent && ent.claims) || {};
-  const yt = ((claims.P1651 || [])[0] || {}).mainsnak;
-  const ytId = yt && yt.datavalue && yt.datavalue.value;
-  if (ytId) ['hq1', 'hq2', 'hq3', 'hqdefault'].forEach(k => shots.push({ thumb: `https://i.ytimg.com/vi/${ytId}/${k}.jpg`, full: `https://i.ytimg.com/vi/${ytId}/${k === 'hqdefault' ? 'maxresdefault' : k}.jpg`, src: 'трейлер' }));
-  // 2) кадри зі статті Вікіпедії (крім постера, логотипів і svg)
-  try {
-    const d = await getJSON(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&generator=images&gimlimit=40&prop=imageinfo&iiprop=url|size&iiurlwidth=900&titles=${encodeURIComponent(title)}`);
-    const poster = (m.pageImage || '').toLowerCase().replace(/_/g, ' ');
-    Object.values((d.query || {}).pages || {}).forEach(p => {
-      const ii = p.imageinfo && p.imageinfo[0]; if (!ii) return;
-      const name = p.title.replace(/^File:/, '').toLowerCase();
-      if (!/\.(jpe?g|png|webp)$/.test(name) || /poster|logo|icon|flag|symbol|commons-|wiki|question_book|signature/.test(name) || (poster && name === poster)) return;
-      if ((ii.width || 0) < 300 || (ii.width || 0) < (ii.height || 0)) return; // кадри горизонтальні
-      shots.push({ thumb: ii.thumburl || ii.url, full: ii.url, src: 'Вікіпедія' });
-    });
-  } catch(e) {}
-  // 3) актори з Вікіданих (P161) з ролями (P453) і фото (P18)
-  try {
-    const cl = (claims.P161 || []).slice(0, 8);
-    const actorIds = cl.map(c => c.mainsnak.datavalue && c.mainsnak.datavalue.value.id).filter(Boolean);
-    const roleIds = cl.map(c => (((c.qualifiers || {}).P453 || [])[0] || {}).datavalue).map(v => v && v.value.id);
-    const ids = actorIds.concat(roleIds.filter(Boolean));
-    if (ids.length) {
-      const l = await getJSON(WD + 'action=wbgetentities&props=labels|claims&languages=uk|en&ids=' + ids.join('|'));
-      const lab = q => { const e = l.entities[q]; const lb = e && e.labels && (e.labels.uk || e.labels.en); return lb ? lb.value : ''; };
-      actorIds.forEach((q, i) => {
-        const e = l.entities[q]; const img = e && e.claims && e.claims.P18 && e.claims.P18[0].mainsnak.datavalue;
-        cast.push({ name: lab(q), role: roleIds[i] ? lab(roleIds[i]) : '', photo: img ? fp(img.value, 120) : '' });
+
+/* ---------- ефекти фону ---------- */
+function runFx(cv, kind){
+  if (kind === 'none' || reduce) return () => {};
+  const ctx = cv.getContext('2d'); let W, H, raf, run = true; const dpr = Math.min(2, devicePixelRatio || 1);
+  const size = () => { W = cv.width = innerWidth * dpr; H = cv.height = innerHeight * dpr; };
+  size(); addEventListener('resize', size);
+  const R = (a, b) => a + Math.random() * (b - a);
+  let parts = [];
+  const N = { stars: 260, rain: 140, sand: 220, sparks: 90, speed: 70, grain: 0 }[kind] || 0;
+  for (let i = 0; i < N; i++) parts.push({ x: R(0, W), y: R(0, H), z: R(.2, 1), v: R(.3, 1), a: R(0, Math.PI * 2) });
+  const cols = kind === 'matrix' ? Array.from({ length: Math.ceil(W / (16 * dpr)) }, () => R(-H, 0)) : null;
+  const glyphs = 'アカサタナハマヤラワ0123456789ЖЮЇЄҐ#$%*+<>'.split('');
+  let t0 = performance.now();
+  const step = now => {
+    if (!run) return; const dt = Math.min(50, now - t0); t0 = now;
+    if (kind === 'matrix') {
+      ctx.fillStyle = 'rgba(0,0,0,.09)'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#3BFF64'; ctx.font = `${15 * dpr}px monospace`;
+      cols.forEach((y, i) => { ctx.fillText(glyphs[(Math.random() * glyphs.length) | 0], i * 16 * dpr, y); cols[i] = y > H + R(0, 4000) ? 0 : y + 16 * dpr * dt / 45; });
+    } else if (kind === 'grain') {
+      ctx.clearRect(0, 0, W, H); ctx.fillStyle = 'rgba(255,255,255,.07)';
+      for (let i = 0; i < 900; i++) ctx.fillRect(R(0, W), R(0, H), dpr * R(1, 2.4), dpr * R(1, 2.4));
+      if (Math.random() < .08) { ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(R(0, W), 0, dpr, H); }
+    } else {
+      ctx.clearRect(0, 0, W, H);
+      parts.forEach(p => {
+        if (kind === 'stars') {
+          const cx = W / 2, cy = H / 2; p.x += (p.x - cx) * .0009 * dt * p.z; p.y += (p.y - cy) * .0009 * dt * p.z;
+          if (p.x < 0 || p.x > W || p.y < 0 || p.y > H) { p.x = cx + R(-W * .2, W * .2); p.y = cy + R(-H * .2, H * .2); }
+          ctx.fillStyle = `rgba(255,255,255,${p.z})`; ctx.fillRect(p.x, p.y, 1.6 * dpr * p.z, 1.6 * dpr * p.z);
+        } else if (kind === 'rain') {
+          p.y += 1.2 * dt * p.v * dpr; p.x -= .25 * dt * p.v * dpr; if (p.y > H) { p.y = -20; p.x = R(0, W * 1.2); }
+          ctx.strokeStyle = `rgba(200,200,200,${.25 * p.z})`; ctx.lineWidth = dpr; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x + 5 * dpr, p.y - 22 * dpr); ctx.stroke();
+        } else if (kind === 'sand') {
+          p.x += .25 * dt * p.v * dpr; p.y += Math.sin(now / 900 + p.a) * .2 * dpr; if (p.x > W) { p.x = -4; p.y = R(0, H); }
+          ctx.fillStyle = `rgba(255,225,170,${.45 * p.z})`; ctx.fillRect(p.x, p.y, 1.8 * dpr, 1.8 * dpr);
+        } else if (kind === 'sparks') {
+          p.y -= .05 * dt * p.v * dpr; p.x += Math.sin(now / 700 + p.a) * .3 * dpr; if (p.y < -5) { p.y = H + 5; p.x = R(0, W); }
+          const tw = .5 + .5 * Math.sin(now / 250 + p.a);
+          ctx.fillStyle = `rgba(255,220,130,${tw * p.z})`; ctx.beginPath(); ctx.arc(p.x, p.y, 1.8 * dpr * p.z, 0, 7); ctx.fill();
+        } else if (kind === 'speed') {
+          if (Math.random() < .3) { const len = R(.15, .45) * Math.max(W, H); const r0 = R(.28, .5) * Math.min(W, H);
+            ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = R(1, 4) * dpr; ctx.beginPath();
+            ctx.moveTo(W / 2 + Math.cos(p.a) * r0, H / 2 + Math.sin(p.a) * r0); ctx.lineTo(W / 2 + Math.cos(p.a) * (r0 + len), H / 2 + Math.sin(p.a) * (r0 + len)); ctx.stroke(); p.a = R(0, 7); }
+        }
       });
     }
-  } catch(e) {}
-  return { shots: shots.slice(0, 10), cast: cast.filter(a => a.name) };
+    raf = requestAnimationFrame(step);
+  };
+  raf = requestAnimationFrame(step);
+  return () => { run = false; cancelAnimationFrame(raf); removeEventListener('resize', size); };
 }
-async function loadExtras(it){
-  const c = extrasCache[it.id];
-  if (c && c.t > Date.now() - 1000*60*60*24*30 && (c.shots.length || c.cast.length)) return c;
-  let shots = [], cast = [];
-  try {
-    if (it.type === 'movie') {
-      ({ shots, cast } = await movieExtras(it));
-    } else if (it.type === 'series' || it.tvmOnly) {
-      const sh = await tvmazeShow(it);
-      if (sh) {
-        const [im, cr] = await Promise.all([getJSON(`https://api.tvmaze.com/shows/${sh.id}/images`), getJSON(`https://api.tvmaze.com/shows/${sh.id}/cast`)]);
-        const pick = im.filter(x => x.type === 'background').concat(im.filter(x => x.type === 'banner'));
-        shots = pick.slice(0, 8).map(x => { const r = x.resolutions || {}; const u = (r.medium || r.original || {}).url || ''; return { thumb: u.replace('http:','https:'), full: ((r.original || r.medium || {}).url || u).replace('http:','https:') }; }).filter(x => x.thumb);
-        cast = cr.slice(0, 8).map(a => ({ name: a.person.name, role: a.character && a.character.name || '', photo: a.person.image ? a.person.image.medium.replace('http:','https:') : '' }));
-      }
-    } else {
-      const md = await anilistMedia(it, 'bannerImage streamingEpisodes{thumbnail} characters(sort:[ROLE,RELEVANCE],perPage:8){edges{node{name{full}} voiceActors(language:JAPANESE,sort:RELEVANCE){name{full} image{medium}}}}');
-      if (md) {
-        shots = [md.bannerImage].filter(Boolean).concat((md.streamingEpisodes || []).map(e => e.thumbnail)).filter(Boolean).slice(0, 8).map(u => ({ thumb: u, full: u }));
-        cast = (md.characters.edges || []).map(e => { const va = e.voiceActors && e.voiceActors[0]; return { name: va ? va.name.full : e.node.name.full, role: va ? 'озвучує ' + e.node.name.full : '', photo: va && va.image ? va.image.medium : '' }; });
-      }
-      if (!shots.length && it.tvm) {
-        const im = await getJSON(`https://api.tvmaze.com/shows/${it.tvm}/images`);
-        shots = im.filter(x => x.type === 'background').slice(0, 8).map(x => { const r = x.resolutions || {}; const u = (r.medium || r.original || {}).url || ''; return { thumb: u.replace('http:','https:'), full: ((r.original || {}).url || u).replace('http:','https:') }; }).filter(x => x.thumb);
-      }
-    }
-    // якщо є ключ TMDB — додаємо його кадри (найкращі за якістю) на початок
-    if (tmdbKey) {
-      try {
-        const r = await fromTMDB(it);
-        if (r && r.tmdbId) {
-          const im = await getJSON(`https://api.themoviedb.org/3/${r.tmdbKind}/${r.tmdbId}/images?api_key=${encodeURIComponent(tmdbKey)}&include_image_language=null`);
-          const t = (im.backdrops || []).slice(0, 8).map(b => ({ thumb: 'https://image.tmdb.org/t/p/w780' + b.file_path, full: 'https://image.tmdb.org/t/p/w1280' + b.file_path }));
-          shots = t.concat(shots);
-        }
-      } catch(e) {}
-    }
-  } catch(e) {}
-  const res = { shots, cast, note: '', t: Date.now() };
-  extrasCache[it.id] = res; store.set('lists.extras', extrasCache);
-  return res;
-}
-function extrasHTML(x){
-  if (!x) return '<div class="box"><h3>Кадри та актори</h3><p class="hint">Завантажую…</p></div>';
-  let h = '';
-  if (x.shots.length) h += `<div><div class="lbl" style="padding:0 4px 8px">Кадри</div><div class="shots">${x.shots.map((sh, i) => `<button data-shot="${i}" aria-label="Кадр ${i+1}"><img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(sh.thumb)}" onload="if(this.naturalWidth&&this.naturalWidth<200)this.parentNode.remove()" onerror="this.parentNode.remove()"></button>`).join('')}</div></div>`;
-  else if (x.note) h += `<p class="hint" style="padding:0 4px;margin:0">${esc(x.note)}</p>`;
-  if (x.cast.length) h += `<div class="box"><h3>Актори</h3><div class="cast">${x.cast.map(a => `<div class="actor"><span class="ph">${a.photo ? `<img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(a.photo)}" onerror="this.remove()">` : esc(initials(a.name))}</span><span><b>${esc(a.name)}</b>${a.role ? `<small>${esc(a.role)}</small>` : ''}</span></div>`).join('')}</div></div>`;
-  return h || '<p class="hint" style="padding:0 4px;margin:0">Кадрів і акторів для цієї назви не знайшлося.</p>';
-}
-let lbList = [], lbIdx = 0;
-function openLb(list, i){ lbList = list; lbIdx = i; showLb(); $('#lb').hidden = false; }
-function showLb(){ $('#lbImg').src = lbList[lbIdx].full; $('#lbCnt').textContent = `${lbIdx + 1} / ${lbList.length}`; $('#lbPv').hidden = $('#lbNx').hidden = lbList.length < 2; }
-$('#lbX').onclick = () => { $('#lb').hidden = true; };
-$('#lbPv').onclick = () => { lbIdx = (lbIdx - 1 + lbList.length) % lbList.length; showLb(); };
-$('#lbNx').onclick = () => { lbIdx = (lbIdx + 1) % lbList.length; showLb(); };
-$('#lb').addEventListener('click', e => { if (e.target.id === 'lb') $('#lb').hidden = true; });
 
-/* ---------- картка ---------- */
-function openSheet(id){
-  const it = items.find(i => i.id === id); if (!it) return;
-  const m = meta[id] || {}; const r = ratingOf(it);
-  const overview = it.overview || m.ukOverview || m.overview || 'Опис завантажується…';
-  const total = it.total || m.episodes;
-  const metaLine = [yearOf(it.year), m.genres, total ? total + ' серій' : ''].filter(Boolean).join(' · ');
-  const back = it.prev && it.prev !== 'watched' ? it.prev : 'planned';
-  $('#sheet').setAttribute('aria-label', it.title);
-  $('#sheet').innerHTML = `
-    <div class="grab"></div>
-    <div class="row"><span class="lbl">${TYPE[it.type]} · ${LABEL[it.status]}</span><button class="done" data-close>Готово</button></div>
-    <div class="hero">${posterHTML(it, true)}
-      <div style="flex:1;display:flex;flex-direction:column;gap:6px">
-        <h2>${esc(it.title)}</h2>
-        ${it.orig && it.orig !== it.title ? `<span class="sub">${esc(it.orig)}</span>` : ''}
-        <span class="meta">${esc(metaLine)}</span>
-        <div class="chips"><span class="chip">${STAR}${r.s ? esc(r.s) + ' ' : ''}${esc(r.v)}</span>${m.rating && r.s === 'IMDb' ? `<span class="chip">${esc(m.rsrc)} ${esc(m.rating)}</span>` : ''}</div>
-      </div>
-    </div>
-    <div class="box"><h3>Короткий зміст</h3><p>${esc(overview)}</p></div>
-    <div id="extras">${extrasHTML(extrasCache[id] && (extrasCache[id].shots.length || extrasCache[id].cast.length) ? extrasCache[id] : null)}</div>
-    <div class="box" style="display:flex;flex-direction:column;gap:10px">
-      ${it.status === 'watched' ? `<h3 style="margin:0">Мій рейтинг${it.pep === 5 ? ' · вогонь!' : it.pep ? ' · ' + it.pep + ' з 5' : ''}</h3>
-      <div class="pep" role="group" aria-label="Мій рейтинг у перчиках">${[1,2,3,4,5].map(n => `<button data-pep="${n}" class="${(it.pep||0) >= n ? 'on' : ''}" aria-pressed="${it.pep===n}" aria-label="${n === 5 ? 'Вогонь — максимум' : n + ' з 5 перчиків'}">${n === 5 ? '🔥' : '🌶️'}</button>`).join('')}</div>
-      ${it.watchedAt ? `<span class="meta">Переглянуто ${new Date(it.watchedAt).toLocaleDateString('uk-UA', {day:'numeric', month:'long', year:'numeric'})}</span>` : ''}` : '<h3 style="margin:0">Нотатка</h3>'}
-      <textarea class="mynote" id="myNote" placeholder="Нотатка: враження, з ким дивився, що порадили…">${esc(it.note || '')}</textarea></div>
-    ${it.status === 'watching' && total ? `<div class="row box" style="padding:8px 8px 8px 16px"><span>Серія ${it.ep||0} з ${total}</span><div class="stepper"><button data-ep="-1" aria-label="Мінус серія">−</button><button data-ep="1" aria-label="Плюс серія">+</button></div></div>` : ''}
-    <div><div class="lbl" style="padding:0 4px 8px">Статус</div>
-      <div class="seg" role="group" aria-label="Статус" style="max-width:none">${['watching','planned','watched'].map(k => `<button aria-pressed="${it.status===k}" data-set="${k}">${LABEL[k]}</button>`).join('')}</div></div>
-    ${it.status === 'watched' ? `<button class="big back" data-unwatch>Повернути в «${LABEL[back]}»</button>` : `<button class="big go" data-watch>✓ Позначити переглянутим</button>`}
-    <button class="big del" data-refresh>Оновити дані з інтернету</button>
-    <button class="big del" data-remove style="color:var(--tint)">Видалити зі списку</button>`;
-  $('#ov').dataset.id = id; $('#ov').hidden = false;
-  if (!meta[id]) want(it);
-  loadExtras(it).then(x => { if ($('#ov').dataset.id === id && $('#extras')) $('#extras').innerHTML = extrasHTML(x); });
+/* ---------- заставка ---------- */
+function splash(text){
+  const t = pickTheme();
+  document.body.classList.add('splashing');
+  const el = document.createElement('div'); el.id = 'splash'; el.className = 'th-' + t.id;
+  el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Фраза дня: ' + text);
+  el.innerHTML = `<canvas aria-hidden="true"></canvas>${t.id === 'cosmos' ? '<div class="ring" aria-hidden="true"></div>' : ''}${t.id === 'space' ? `<div class="sp-cap sp-top">${esc(t.cap)}</div>` : ''}<div class="sp-in"><div class="sp-cap">${esc(t.cap)}</div><div class="sp-q" aria-hidden="true"></div></div><div class="sp-skip">Торкнись, щоб продовжити</div>`;
+  document.body.appendChild(el);
+  const q = el.querySelector('.sp-q');
+  q.style.fontFamily = `"${t.font}", Georgia, serif`;
+  let stopFx = runFx(el.querySelector('canvas'), t.fx), done = false, timers = [];
+  const finish = () => {
+    if (done) return; done = true; timers.forEach(clearTimeout);
+    el.classList.add('out'); document.body.classList.remove('splashing');
+    setTimeout(() => { stopFx(); el.remove(); }, 850);
+  };
+  el.addEventListener('click', finish);
+  addEventListener('keydown', function k(e){ if (['Escape','Enter',' '].includes(e.key)) { finish(); removeEventListener('keydown', k); } });
+  timers.push(setTimeout(finish, 15000));
+  loadFont(t).then(() => {
+    if (done) return;
+    let dur = 1500;
+    if (reduce) { q.textContent = text; dur = 800; }
+    else if (t.rev === 'type') {
+      const cur = document.createElement('span'); cur.className = 'cursor'; q.appendChild(cur);
+      const sp = Math.max(22, Math.min(55, 2600 / text.length)); let i = 0;
+      const tick = () => { if (done) return; if (i < text.length) { cur.insertAdjacentText('beforebegin', text[i++]); timers.push(setTimeout(tick, text[i-1] === ' ' ? sp * .5 : sp)); } };
+      tick(); dur = text.length * sp + 400;
+    } else if (t.rev === 'letters' || t.rev === 'words') {
+      const parts = t.rev === 'letters' ? [...text] : text.split(/(\s+)/);
+      const gap = t.rev === 'letters' ? Math.max(18, Math.min(45, 2200 / text.length)) : Math.max(90, Math.min(220, 2600 / parts.length * 2));
+      let d = 0;
+      parts.forEach(p => { const s = document.createElement('span'); s.textContent = p; if (/\S/.test(p)) { s.style.animationDelay = d + 'ms'; d += gap; } else s.style.opacity = 1; q.appendChild(s); });
+      if (t.rev === 'letters') { /* щоб слова не розривались по літерах */ q.innerHTML = ''; d = 0; text.split(/(\s+)/).forEach(w => { if (!/\S/.test(w)) { q.appendChild(document.createTextNode(' ')); return; } const wr = document.createElement('span'); wr.style.whiteSpace = 'nowrap'; wr.style.opacity = 1; wr.style.animation = 'none'; [...w].forEach(ch => { const s = document.createElement('span'); s.textContent = ch; s.style.animationDelay = d + 'ms'; d += gap; wr.appendChild(s); }); q.appendChild(wr); }); }
+      dur = d + 900;
+    } else if (t.rev === 'crawl') { q.textContent = text; dur = 7500; }
+    else { q.textContent = text; dur = 2200; }
+    timers.push(setTimeout(finish, Math.min(13000, dur + 2800)));
+  });
 }
-$('#sheet').addEventListener('change', e => { if (e.target.id === 'myNote') { const it = items.find(i => i.id === $('#ov').dataset.id); if (it) { it.note = e.target.value.trim(); save(); } } });
-const closeSheet = () => { $('#ov').hidden = true; $('#ov').dataset.id = ''; };
-$('#ovBg').onclick = closeSheet;
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (!$('#lb').hidden) $('#lb').hidden = true; else if (!$('#ov').hidden) closeSheet(); } else if (!$('#lb').hidden && e.key === 'ArrowRight') $('#lbNx').click(); else if (!$('#lb').hidden && e.key === 'ArrowLeft') $('#lbPv').click(); });
-$('#sheet').addEventListener('click', async e => {
-  const b = e.target.closest('button'); if (!b) return;
-  const id = $('#ov').dataset.id, it = items.find(i => i.id === id);
-  if (b.dataset.close !== undefined) closeSheet();
-  else if (b.dataset.set) { if (it && it.status !== b.dataset.set) setStatus(id, b.dataset.set); }
-  else if (b.dataset.pep && it) { const n = Number(b.dataset.pep); it.pep = it.pep === n ? 0 : n; save(); render(); openSheet(id); }
-  else if (b.dataset.watch !== undefined) setStatus(id, 'watched');
-  else if (b.dataset.unwatch !== undefined) unwatch(id);
-  else if (b.dataset.ep && it) { const total = it.total || (meta[id]||{}).episodes; const n = Math.max(0, (it.ep||0) + Number(b.dataset.ep)); if (total && n >= total) { it.total = total; setStatus(id, 'watched', total); } else setStatus(id, 'watching', n); }
-  else if (b.dataset.refresh !== undefined && it) { b.textContent = 'Оновлюю…'; await loadMeta(it, true); render(); openSheet(id); }
-  else if (b.dataset.remove !== undefined && it) { undoSnap = JSON.stringify(items); items = items.filter(i => i.id !== id); removed.push(id); store.set('lists.removed', removed); save(); closeSheet(); render(); toast(`«${it.title}» видалено`); }
-  else if (b.dataset.shot !== undefined) { const x = extrasCache[id]; if (x) openLb(x.shots, Number(b.dataset.shot)); }
-  else if (b.dataset.add) addFound(b.dataset.add);
-  else if (b.dataset.savekey !== undefined) { tmdbKey = $('#keyIn').value.trim(); store.set('lists.tmdb', tmdbKey); meta = {}; saveMeta(); closeSheet(); render(); toast(tmdbKey ? 'Ключ TMDB збережено' : 'Ключ видалено'); }
-});
 
-/* ---------- події списку ---------- */
+/* ---------- дані Кінотеатру ---------- */
+const items = store.get('lists.items', []) || [];
+const meta = store.get('lists.meta', {});
+const posterOf = it => (meta[it.id] && meta[it.id].poster) || it.poster || '';
+const posterHTML = (id, title, src) => `<span class="poster" style="background:${tint(id)}">${esc(initials(title))}${src ? `<img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(src)}" onload="this.classList.add('ok')" onerror="this.remove()">` : ''}</span>`;
+let toastT; const toast = t => { $('#toast').textContent = t; $('#toast').hidden = false; clearTimeout(toastT); toastT = setTimeout(() => $('#toast').hidden = true, 3000); };
+
+function renderTop(text){
+  const dt = new Date().toLocaleDateString('uk-UA', { weekday: 'long', day: 'numeric', month: 'long' }); $('#today').textContent = dt.charAt(0).toUpperCase() + dt.slice(1);
+  const h = new Date().getHours();
+  document.querySelector('h1').textContent = h < 5 ? 'Доброї ночі' : h < 12 ? 'Доброго ранку' : h < 18 ? 'Доброго дня' : 'Доброго вечора';
+  $('#quote').innerHTML = `${esc(text)}<small>Фраза дня</small>`;
+  const watched = items.filter(i => i.status === 'watched'), fire = watched.filter(i => i.pep === 5).length;
+  $('#stats').innerHTML = `<div class="stat"><b>${items.filter(i => i.status === 'planned').length}</b><span>у планах</span></div><div class="stat"><b>${watched.length}</b><span>переглянуто</span></div><div class="stat"><b>${fire}</b><span>з вогником 🔥</span></div>`;
+}
+function renderWatching(){
+  const w = items.filter(i => i.status === 'watching');
+  $('#watchingSec').innerHTML = w.length ? `<h2 class="sec">Продовжити перегляд</h2><div class="row">${w.map(it => `<a class="card" href="kino.html#open=${encodeURIComponent(it.id)}">${posterHTML(it.id, it.title, posterOf(it))}<span class="ct">${esc(it.title)}</span>${it.ep ? `<span class="cs">Серія ${it.ep}${it.total ? ' з ' + it.total : ''}</span>` : ''}</a>`).join('')}</div>` : '';
+}
+let pickIdx = -1;
+function renderPick(){
+  const pl = items.filter(i => i.status === 'planned');
+  if (!pl.length) { $('#pickSec').innerHTML = items.length ? '' : `<h2 class="sec">Ідея на вечір</h2><div class="empty">Відкрий <a href="kino.html">Кінотеатр</a> — і тут з'являться ідеї з твого списку.</div>`; return; }
+  let i; do { i = Math.floor(Math.random() * pl.length); } while (pl.length > 1 && i === pickIdx); pickIdx = i;
+  const it = pl[i], TYPE = { movie: 'Фільм', series: 'Серіал', anime: 'Аніме' };
+  $('#pickSec').innerHTML = `<h2 class="sec">Ідея на вечір</h2><div class="pick">${posterHTML(it.id, it.title, posterOf(it))}<div><h3>${esc(it.title)}</h3><p>${esc([TYPE[it.type], String(it.year||'').slice(0,4)].filter(Boolean).join(' · '))} · з твого списку «Планую»</p><div class="btns"><a class="btn go" href="kino.html#open=${encodeURIComponent(it.id)}">Відкрити</a><button class="btn" id="another">Інша ідея</button></div></div></div>`;
+  $('#another').onclick = renderPick;
+}
+
+/* ---------- новинки ---------- */
+const getJSON = async u => { const r = await fetch(u); if (!r.ok) throw new Error(r.status); return r.json(); };
+const tmdbKey = store.get('lists.tmdb', '');
+const SOURCES = tmdbKey
+  ? [['cinema','У прокаті'],['soon','Скоро'],['tv','Серіали тижня']]
+  : [['premieres','Прем\'єри серіалів']];
+let tab = store.get('home.newsTab', SOURCES[0][0]); if (!SOURCES.some(s => s[0] === tab)) tab = SOURCES[0][0];
+const ymd = d => d.toISOString().slice(0, 10);
+async function loadNews(kind){
+  const cache = store.get('home.news', {});
+  if (cache[kind] && Date.now() - cache[kind].t < 6 * 3600e3) return cache[kind].list;
+  let list = [];
+  if (kind === 'premieres') {
+    const days = []; for (let k = -6; k <= 3; k++) { const d = new Date(); d.setDate(d.getDate() + k); days.push(ymd(d)); }
+    const res = await Promise.allSettled(days.flatMap(d => [getJSON(`https://api.tvmaze.com/schedule/web?date=${d}`), getJSON(`https://api.tvmaze.com/schedule?country=US&date=${d}`), getJSON(`https://api.tvmaze.com/schedule?country=GB&date=${d}`)]));
+    const seen = new Set();
+    res.forEach(r => (r.value || []).forEach(ep => {
+      const s = ep.show || (ep._embedded && ep._embedded.show); if (!s || seen.has(s.id)) return;
+      if (ep.season !== 1 || ep.number !== 1) return;
+      if (!['Scripted', 'Animation'].includes(s.type)) return;
+      const ctry = (s.network && s.network.country && s.network.country.code) || (s.webChannel && s.webChannel.country && s.webChannel.country.code) || '';
+      if (s.language === 'Russian' || ctry === 'RU') return;
+      seen.add(s.id);
+      const anime = s.language === 'Japanese' && s.type === 'Animation';
+      list.push({ key: 'tvm' + s.id, tvm: s.id, type: anime ? 'anime' : 'series', title: s.name, orig: s.name, year: (s.premiered || ep.airdate || '').slice(0, 4), poster: s.image ? s.image.medium : '', sub: [(s.network || s.webChannel || {}).name, new Date(ep.airdate).toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' })].filter(Boolean).join(' · '), w: (s.weight || 0) + (s.image ? 20 : 0) });
+    }));
+    list.sort((a, b) => b.w - a.w); list = list.slice(0, 24);
+  } else {
+    const path = kind === 'cinema' ? 'movie/now_playing' : kind === 'soon' ? 'movie/upcoming' : 'trending/tv/week';
+    const base = `https://api.themoviedb.org/3/${path}?api_key=${encodeURIComponent(tmdbKey)}&language=uk-UA`;
+    let d = await getJSON(base + (kind === 'tv' ? '' : '&region=UA'));
+    if (kind !== 'tv' && (d.results || []).length < 6) d = await getJSON(base);
+    list = (d.results || []).filter(x => !isRussian(x)).slice(0, 24).map(x => ({ key: 'tmdb' + x.id, type: kind === 'tv' ? ((x.genre_ids || []).includes(16) && x.original_language === 'ja' ? 'anime' : 'series') : 'movie',
+      title: x.title || x.name, orig: x.original_title || x.original_name, year: (x.release_date || x.first_air_date || '').slice(0, 4),
+      poster: x.poster_path ? 'https://image.tmdb.org/t/p/w342' + x.poster_path : '', overview: x.overview || '',
+      sub: (x.release_date || x.first_air_date) ? new Date(x.release_date || x.first_air_date).toLocaleDateString('uk-UA', { day: 'numeric', month: 'short', year: 'numeric' }) : '' }));
+  }
+  cache[kind] = { t: Date.now(), list }; store.set('home.news', cache);
+  return list;
+}
+const norm = s => String(s || '').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+const inList = n => items.some(i => (n.tvm && i.tvm === n.tvm) || (norm(i.title) && (norm(i.title) === norm(n.title) || norm(i.orig) === norm(n.orig))));
+let news = [];
+async function renderNews(){
+  $('#newsSeg').innerHTML = SOURCES.length > 1 ? SOURCES.map(([k, l]) => `<button aria-pressed="${k === tab}" data-tab="${k}">${l}</button>`).join('') : '';
+  $('#newsSeg').hidden = SOURCES.length < 2;
+  $('#newsNote').innerHTML = tmdbKey ? 'Дані: TMDB. Російське відфільтровано.' : 'Прем\'єри перших серій за останній тиждень і найближчі дні (TVmaze). Щоб бачити фільми в прокаті, додай ключ TMDB у <a href="kino.html">Кінотеатрі</a> → ⚙.';
+  try { news = await loadNews(tab); } catch (e) { $('#news').innerHTML = '<div class="empty" style="width:100%">Не вдалося завантажити новинки. Перевір інтернет.</div>'; return; }
+  $('#news').innerHTML = news.length ? news.map((n, i) => { const has = inList(n); return `<div class="card">${posterHTML(n.key, n.title, n.poster)}<button class="add" data-add="${i}" ${has ? 'disabled aria-label="Уже в списку"' : `aria-label="Додати «${esc(n.title)}» у «Планую»"`}>${has ? '✓' : '+'}</button><span class="ct">${esc(n.title)}</span><span class="cs">${esc(n.sub || n.year)}</span></div>`; }).join('') : '<div class="empty" style="width:100%">Поки нічого нового.</div>';
+}
 document.addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b || b.closest('#sheet')) return;
-  if (b.dataset.type) { ui.type = b.dataset.type; save(); render(); }
-  else if (b.dataset.status) { ui.status = b.dataset.status; save(); render(); }
-  else if (b.dataset.open) openSheet(b.dataset.open);
-  else if (b.dataset.check) { const it = items.find(i => i.id === b.dataset.check); if (it.status === 'watched') unwatch(it.id); else setStatus(it.id, 'watched'); }
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.tab) { tab = b.dataset.tab; store.set('home.newsTab', tab); renderNews(); }
+  else if (b.dataset.add) {
+    const n = news[Number(b.dataset.add)]; if (!n || inList(n)) return;
+    const it = { id: 'u' + Date.now().toString(36), type: n.type, status: 'planned', title: n.title, orig: n.orig, year: n.year, imdb: '', overview: n.overview || '' };
+    if (n.tvm) it.tvm = n.tvm;
+    const all = store.get('lists.items', []) || []; all.unshift(it); store.set('lists.items', all); items.unshift(it);
+    if (n.poster) { const m = store.get('lists.meta', {}); m[it.id] = { poster: n.poster, t: 0 }; store.set('lists.meta', m); meta[it.id] = m[it.id]; }
+    b.disabled = true; b.textContent = '✓'; toast(`«${n.title}» додано в «Планую»`); renderTop($('#quote').firstChild.textContent); renderPick();
+  }
 });
 
-/* ---------- додавання ---------- */
-let found = [];
-$('#btnAdd').onclick = () => {
-  $('#sheet').setAttribute('aria-label', 'Додати');
-  $('#sheet').innerHTML = `
-    <div class="grab"></div>
-    <div class="row"><span style="font-size:17px;font-weight:600">Додати: ${esc({movie:'фільм',series:'серіал',anime:'аніме'}[ui.type])}</span><button class="done" data-close>Готово</button></div>
-    <div class="field"><label for="q" class="sr">Назва</label><input id="q" type="search" placeholder="Назва (краще оригінальна)" autocomplete="off"></div>
-    <div class="results" id="res"></div>
-    <p class="hint">Нове потрапить у «Планую». Тип можна змінити вгорі списку перед додаванням.</p>`;
-  $('#ov').dataset.id = ''; $('#ov').hidden = false;
-  let t; $('#q').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => search(e.target.value.trim()), 400); });
-  setTimeout(() => $('#q').focus(), 50);
-};
-async function search(q){
-  const box = $('#res'); if (!box) return;
-  if (q.length < 2) { box.innerHTML = ''; return; }
-  box.innerHTML = '<div class="res lbl">Шукаю…</div>';
-  try {
-    if (tmdbKey) {
-      const kind = ui.type === 'movie' ? 'movie' : 'tv';
-      const d = await getJSON(`https://api.themoviedb.org/3/search/${kind}?api_key=${encodeURIComponent(tmdbKey)}&query=${encodeURIComponent(q)}&language=uk-UA`);
-      found = (d.results||[]).filter(r => !isRussian(r)).slice(0,8).map(r => ({ title: r.title || r.name, orig: r.original_title || r.original_name, year: yearOf(r.release_date || r.first_air_date), poster: r.poster_path ? 'https://image.tmdb.org/t/p/w154' + r.poster_path : '' }));
-    } else if (ui.type === 'series') {
-      const d = await getJSON('https://api.tvmaze.com/search/shows?q=' + encodeURIComponent(q));
-      found = d.filter(x => !isRussian({ language: x.show.language, country: (x.show.network||x.show.webChannel||{}).country && (x.show.network||x.show.webChannel).country.code })).slice(0,8).map(x => ({ title: x.show.name, orig: x.show.name, year: yearOf(x.show.premiered), poster: x.show.image ? x.show.image.medium.replace('http:','https:') : '' }));
-    } else if (ui.type === 'anime') {
-      const query = 'query($s:String){Page(perPage:8){media(search:$s,type:ANIME){title{romaji english} startDate{year} coverImage{medium}}}}';
-      const d = await getJSON('https://graphql.anilist.co', { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ query, variables:{ s:q } }) });
-      found = d.data.Page.media.map(m => ({ title: m.title.english || m.title.romaji, orig: m.title.romaji, year: String(m.startDate.year||''), poster: m.coverImage.medium }));
-    } else {
-      const d = await getJSON(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=8&gsrsearch=${encodeURIComponent(q + ' film')}&prop=pageimages|description&piprop=thumbnail&pithumbsize=160&pilicense=any`);
-      found = Object.values((d.query||{}).pages||{}).filter(p => !isRussian({ description: p.description })).sort((a,b)=>a.index-b.index).map(p => ({ title: p.title.replace(/ \(.*film\)$/,''), orig: p.title.replace(/ \(.*film\)$/,''), year: ((p.title.match(/\((\d{4})/)||[])[1]) || ((p.description||'').match(/\d{4}/)||[''])[0], poster: p.thumbnail ? p.thumbnail.source : '' }));
-    }
-    box.innerHTML = found.length ? found.map((f,i) => `<button class="res" data-add="${i}">${f.poster ? `<img alt="" referrerpolicy="no-referrer" src="${esc(f.poster)}">` : '<span class="ph"></span>'}<span style="display:flex;flex-direction:column"><span style="font-weight:600">${esc(f.title)}</span><span class="lbl">${esc([f.year, f.orig !== f.title ? f.orig : ''].filter(Boolean).join(' · '))}</span></span></button>`).join('') : '<div class="res lbl">Нічого не знайдено</div>';
-  } catch(e) { box.innerHTML = '<div class="res lbl">Не вдалося з\'єднатися з джерелом даних</div>'; }
-}
-function addFound(i){
-  const f = found[Number(i)]; if (!f) return;
-  const it = { id: 'u' + Date.now().toString(36), type: ui.type, status: 'planned', title: f.title, orig: f.orig, year: f.year, imdb: '', overview: '' };
-  if (f.poster) meta[it.id] = { poster: f.poster, t: 0 };
-  items.unshift(it); ui.status = 'planned'; save(); closeSheet(); render(); toast(`«${f.title}» додано в «Планую»`);
-}
-
-/* ---------- налаштування ---------- */
-$('#btnSettings').onclick = () => {
-  $('#sheet').setAttribute('aria-label', 'Налаштування');
-  $('#sheet').innerHTML = `
-    <div class="grab"></div>
-    <div class="row"><span style="font-size:17px;font-weight:600">Налаштування</span><button class="done" data-close>Готово</button></div>
-    <div class="box"><h3>Ключ TMDB (необов'язково)</h3>
-      <p class="hint" style="margin-bottom:10px">Без ключа постери й описи беруться з TVmaze, AniList і Вікіпедії. З ключем TMDB — описи українською й постери для всього. Ключ зберігається тільки в цьому браузері.</p>
-      <div class="field"><label for="keyIn" class="sr">Ключ TMDB</label><input id="keyIn" type="password" autocomplete="off" placeholder="API Key (v3)" value="${esc(tmdbKey)}"></div></div>
-    <button class="big go" data-savekey>Зберегти</button>`;
-  $('#ov').dataset.id = ''; $('#ov').hidden = false;
-};
-
-render();
+/* ---------- старт ---------- */
+let phrase = sessionStorage.getItem('home.phrase');
+const first = !phrase || QS.has('theme');
+if (first) { phrase = QS.has('theme') && phrase ? phrase : nextPhrase(); sessionStorage.setItem('home.phrase', phrase); }
+renderTop(phrase); renderWatching(); renderPick(); renderNews();
+if (first) splash(phrase);
 }
 </script>
 </body>
