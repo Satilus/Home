@@ -2,6 +2,22 @@
    Токен GitHub вводить користувач; він зберігається лише в цьому браузері й ніколи не потрапляє в копію чи Gist. */
 (function () {
   'use strict';
+  /* ---- захист від вбудовування в чужі сторінки (клікджекінг) ---- */
+  if (window.top !== window.self) { document.documentElement.style.display = 'none'; try { window.top.location = window.self.location.href; } catch (e) {} }
+
+  /* ---- картинки без вбудованих обробників (для CSP): data-ok, data-rm, data-rmp, data-minw ---- */
+  document.addEventListener('load', e => {
+    const t = e.target; if (!t || t.tagName !== 'IMG') return;
+    if (t.dataset.minw && t.naturalWidth && t.naturalWidth < Number(t.dataset.minw)) { if (t.parentNode) t.parentNode.remove(); return; }
+    if ('ok' in t.dataset) t.classList.add('ok');
+  }, true);
+  document.addEventListener('error', e => {
+    const t = e.target; if (!t || t.tagName !== 'IMG') return;
+    if ('rmp' in t.dataset) { if (t.parentNode) t.parentNode.remove(); } else if ('rm' in t.dataset) t.remove();
+  }, true);
+  /* безпечні посилання з даних: лише https */
+  window.safeUrl = u => /^https:\/\//i.test(String(u || '')) ? String(u) : '';
+
   const FILE = 'tyuisho.json';
   const PREFIXES = ['lists.'];
   /* кеші та ключі — не синхронізуємо */
@@ -51,6 +67,16 @@
     if (!r.ok) throw new Error('GitHub відповів ' + r.status);
     return r.json();
   };
+  /* попередження, якщо токен має більше прав, ніж потрібно (класичні токени повідомляють їх у X-OAuth-Scopes) */
+  async function checkScopes() {
+    try {
+      const r = await fetch('https://api.github.com/user', { headers: { Authorization: 'Bearer ' + cfg().token, Accept: 'application/vnd.github+json' } });
+      const sc = (r.headers.get('X-OAuth-Scopes') || '').split(',').map(x => x.trim()).filter(Boolean);
+      const extra = sc.filter(x => x !== 'gist');
+      put('sync.scopes', extra);
+      if (extra.length) status('⚠️ Токен має зайві права: ' + extra.join(', ') + '. Для безпеки створи новий лише з «gist» і заміни.');
+    } catch (e) {}
+  }
   async function findGist() {
     const c = cfg(); if (c.gist) return c.gist;
     for (let page = 1; page <= 5; page++) {
@@ -138,8 +164,8 @@
         ${c.token ? `<p>Увімкнено. Зміни зберігаються в приватний Gist на твоєму GitHub і підтягуються на інших пристроях при відкритті сторінки.</p>
           <p class="st">Остання синхронізація: ${esc(fmt(get('sync.last', 0)))}</p>
           <button class="b go" data-now>Синхронізувати зараз</button>
-          <button class="b" data-off>Вимкнути на цьому пристрої</button>`
-        : `<p>Дані зберігатимуться в приватному Gist на твоєму GitHub. Потрібен токен з доступом лише до Gist: <a href="https://github.com/settings/tokens/new?scopes=gist&description=%D0%A2%D1%8E%20%D1%96%20%D0%A8%D0%BE" target="_blank" rel="noopener">створити токен</a> (позначка «gist», термін — на твій вибір). Встав його тут на кожному пристрої — дані зійдуться самі.</p>
+          <button class="b" data-off>Вимкнути й забути токен на цьому пристрої</button>${(get('sync.scopes', []) || []).length ? `<p class="st" style="color:var(--tint,#E0261C)">⚠️ Токен має зайві права (${esc(get('sync.scopes', []).join(', '))}). Створи новий лише з доступом «gist» і підключи його замість цього.</p>` : ''}`
+        : `<p>Дані зберігатимуться в приватному Gist на твоєму GitHub. Потрібен токен з доступом лише до Gist: <a href="https://github.com/settings/tokens/new?scopes=gist&description=%D0%A2%D1%8E%20%D1%96%20%D0%A8%D0%BE" target="_blank" rel="noopener">створити токен</a> (лише позначка «gist» і обмежений термін дії, наприклад рік). Або fine-grained токен із єдиним правом «Gists: Read and write». Встав його тут на кожному пристрої — дані зійдуться самі. Токен зберігається лише в цьому браузері; нікому його не пересилай.</p>
           <input type="password" autocomplete="off" placeholder="ghp_… або github_pat_…" data-tok>
           <button class="b go" data-on>Увімкнути</button>`}
         <p class="st" id="syncSt"></p>
@@ -251,6 +277,7 @@
             apply(remote); put('sync.last', remote.updated); ls.removeItem('sync.dirty'); location.reload(); return;
           }
           await push(); render(); status('Синхронізацію увімкнено');
+          checkScopes();
         } catch (err) { ls.removeItem('sync.cfg'); render(); status(err.message); }
       }
       else if (b.dataset.now !== undefined) {
@@ -261,7 +288,7 @@
           await push(); render(); status('Готово');
         } catch (err) { status(err.message); b.disabled = false; }
       }
-      else if (b.dataset.off !== undefined) { ls.removeItem('sync.cfg'); render(); status('Вимкнено. Дані на цьому пристрої залишились.'); }
+      else if (b.dataset.off !== undefined) { ls.removeItem('sync.cfg'); ls.removeItem('sync.scopes'); render(); status('Токен забуто. Дані на цьому пристрої залишились.'); }
       else if (b.dataset.inst !== undefined && deferredInstall) { deferredInstall.prompt(); deferredInstall = null; render(); }
     });
     ov.querySelector('.sh').addEventListener('change', async e => {
