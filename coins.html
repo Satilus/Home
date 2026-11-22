@@ -160,7 +160,8 @@ const SEED = [
   "diameter": "30 мм",
   "mintage": "1000000",
   "series": "Збройні Сили України",
-  "wk": "десантно-штурмові"
+  "wk": "десантно-штурмові",
+  "wiki": "Десантно-штурмові війська Збройних Сил України (монета)"
  },
  {
   "id": "z2",
@@ -178,7 +179,8 @@ const SEED = [
   "diameter": "30 мм",
   "mintage": "1000000",
   "series": "Збройні Сили України",
-  "wk": "на варті життя"
+  "wk": "на варті життя",
+  "wiki": "На варті життя (монета)"
  },
  {
   "id": "z3",
@@ -196,7 +198,8 @@ const SEED = [
   "diameter": "30 мм",
   "mintage": "1000000",
   "series": "Збройні Сили України",
-  "wk": "сухопутні війська"
+  "wk": "сухопутні війська",
+  "wiki": "Сухопутні війська Збройних Сил України (монета)"
  },
  {
   "id": "z4",
@@ -214,7 +217,8 @@ const SEED = [
   "diameter": "30 мм",
   "mintage": "1000000",
   "series": "Збройні Сили України",
-  "wk": "^«?збройні сили україни»?$"
+  "wk": "^«?збройні сили україни»?$",
+  "wiki": "Збройні Сили України (монета)"
  },
  {
   "id": "z5",
@@ -232,7 +236,8 @@ const SEED = [
   "diameter": "30 мм",
   "mintage": "1000000",
   "series": "Збройні Сили України",
-  "wk": "повітряні сили"
+  "wk": "повітряні сили",
+  "wiki": "Повітряні Сили Збройних Сил України (монета)"
  },
  {
   "id": "z6",
@@ -250,7 +255,8 @@ const SEED = [
   "diameter": "30 мм",
   "mintage": "1000000",
   "series": "Збройні Сили України",
-  "wk": "військово-морські сили"
+  "wk": "військово-морські сили",
+  "wiki": "Військово-Морські Сили Збройних Сил України (монета)"
  },
  {
   "id": "z7",
@@ -283,7 +289,8 @@ const SEED = [
   "diameter": "30 мм",
   "mintage": "1000000",
   "series": "Збройні Сили України",
-  "wk": "краз"
+  "wk": "краз",
+  "wiki": "КрАЗ-6322 «Солдат» (монета)"
  },
  {
   "id": "z9",
@@ -301,7 +308,8 @@ const SEED = [
   "diameter": "30 мм",
   "mintage": "1000000",
   "series": "Збройні Сили України",
-  "wk": "добровольця"
+  "wk": "добровольця",
+  "wiki": "День українського добровольця (монета)"
  },
  {
   "id": "z10",
@@ -319,7 +327,8 @@ const SEED = [
   "diameter": "30 мм",
   "mintage": "1000000",
   "series": "Збройні Сили України",
-  "wk": "прикордонн"
+  "wk": "прикордонн",
+  "wiki": "Державна прикордонна служба України (монета)"
  },
  {
   "id": "z11",
@@ -337,7 +346,8 @@ const SEED = [
   "diameter": "30 мм",
   "mintage": "1000000",
   "series": "Збройні Сили України",
-  "wk": "полеглих"
+  "wk": "полеглих",
+  "wiki": "День пам'яті полеглих захисників України (монета)"
  },
  {
   "id": "z12",
@@ -355,7 +365,8 @@ const SEED = [
   "diameter": "30 мм",
   "mintage": "1000000",
   "series": "Збройні Сили України",
-  "wk": "100 років.*флот"
+  "wk": "100 років.*флот",
+  "wiki": "100-річчя створення Українського військово-морського флоту (монета)"
  },
  {
   "id": "z13",
@@ -373,7 +384,8 @@ const SEED = [
   "diameter": "23,5 мм",
   "mintage": "10000000",
   "series": "Збройні Сили України",
-  "wk": "сили підтримки"
+  "wk": "сили підтримки",
+  "wiki": "Сили підтримки Збройних Сил України (монета)"
  },
  {
   "id": "z14",
@@ -391,7 +403,8 @@ const SEED = [
   "diameter": "23,5 мм",
   "mintage": "2000000",
   "series": "Ми сильні. Ми разом",
-  "wk": "запорізька"
+  "wk": "запорізька",
+  "wiki": "Ми сильні. Ми разом. Запорізька область (монета)"
  },
  {
   "id": "z15",
@@ -409,17 +422,47 @@ const SEED = [
   "diameter": "30 мм",
   "mintage": "1000000",
   "series": "Збройні Сили України",
-  "wk": "спеціальних операцій"
+  "wk": "спеціальних операцій",
+  "wiki": "Сили спеціальних операцій Збройних Сил України (монета)"
  }
 ];
 
 let removed = store.get('coins.removed', []);
 let items = store.get('coins.items', null) || [];
 SEED.forEach(sd => { if (!items.some(i => i.id === sd.id) && !removed.includes(sd.id)) items.push(Object.assign({ qty: sd.status === 'have' ? 1 : 0, added: 0 }, sd)); });
-items.forEach(i => { const sd = SEED.find(x => x.id === i.id); if (sd && sd.wk) i.wk = sd.wk; });
-if (store.get('coins.imgv', 0) < 2) { items.forEach(i => { if (/автопідбір/.test(i.imgSource||'')) { i.img = ''; i.imgBack = ''; i.imgSource = ''; } }); store.set('coins.autoTried', []); store.set('coins.imgv', 2); store.set('coins.items', items); }
+items.forEach(i => { const sd = SEED.find(x => x.id === i.id); if (sd) { if (sd.wk) i.wk = sd.wk; if (sd.wiki) i.wiki = sd.wiki; } });
+if (store.get('coins.imgv', 0) < 3) { items.forEach(i => { if (/автопідбір/.test(i.imgSource||'')) { i.img = ''; i.imgBack = ''; i.imgSource = ''; } }); store.set('coins.autoTried', []); store.set('coins.imgv', 3); store.set('coins.wikiRows', null); store.set('coins.items', items); }
 let ui = Object.assign({ tab:'have', sort:'year', q:'' }, store.get('coins.ui', {}));
 const save = () => { store.set('coins.items', items); store.set('coins.ui', { tab: ui.tab, sort: ui.sort }); };
+
+/* ---------- зображення зі статей Вікіпедії про кожну монету ---------- */
+const WAPI = 'https://uk.wikipedia.org/w/api.php?format=json&origin=*&';
+async function findArticle(it){
+  try {
+    const d = await (await fetch(WAPI + 'action=query&redirects=1&titles=' + encodeURIComponent(it.wiki))).json();
+    const pg = Object.values((d.query||{}).pages||{})[0];
+    if (pg && !('missing' in pg)) return pg.title;
+  } catch(e) {}
+  const d2 = await (await fetch(WAPI + 'action=query&list=search&srlimit=3&srsearch=' + encodeURIComponent(it.name + ' монета 10 гривень'))).json();
+  const hit = ((d2.query||{}).search||[]).find(h => /монета/i.test(h.title)) || ((d2.query||{}).search||[])[0];
+  return hit ? hit.title : null;
+}
+async function articleImages(it){
+  const title = await findArticle(it); if (!title) return null;
+  const d = await (await fetch(WAPI + 'action=query&generator=images&gimlimit=50&prop=imageinfo&iiprop=url&iiurlwidth=500&titles=' + encodeURIComponent(title))).json();
+  const files = Object.values((d.query||{}).pages||{}).filter(p => p.imageinfo && /\.(png|jpe?g|webp)$/i.test(p.title))
+    .map(p => ({ t: p.title.toLowerCase(), url: p.imageinfo[0].thumburl || p.imageinfo[0].url }));
+  const std = f => /hryvnia coin of ukraine, 2018/.test(f.t);
+  const rev = files.find(f => !std(f) && /(ревер|revers|\br\.|_r\.|\(r\))/.test(f.t)) || files.find(f => !std(f) && !/(авер|avers|obvers|\ba\.|_a\.|\(a\))/.test(f.t));
+  const av = files.find(f => /(авер|avers|obvers|\ba\.|_a\.|\(a\))/.test(f.t) && f !== rev) || files.find(f => std(f) && /avers/.test(f.t));
+  if (!rev && !av) return null;
+  return { img: (av || rev).url, imgBack: av && rev ? rev.url : '', title };
+}
+async function wikiArticleImages(force){
+  for (const it of items.filter(i => i.wiki && (force || !i.img))) {
+    try { const r = await articleImages(it); if (r) { it.img = r.img; it.imgBack = r.imgBack; it.imgSource = 'Вікіпедія: «' + r.title + '» (зображення НБУ)'; save(); render(); if ($('#ov').dataset.id === it.id) openSheet(it.id); } } catch(e) {}
+  }
+}
 
 /* ---------- зображення з Вікіпедії (таблиці монет НБУ з аверсом і реверсом) ---------- */
 const WIKI_PAGES = ["Список_ювілейних_та_пам'ятних_монет_України_з_недорогоцінних_металів", '10_гривень_(монета)'];
@@ -523,6 +566,7 @@ function openSheet(id){
     ${it.note ? `<div class="box"><h3>Нотатка</h3><p>${esc(it.note)}</p></div>` : ''}
     ${it.status === 'have' ? `<div class="row box" style="padding:8px 8px 8px 16px"><span>Кількість: <b>${it.qty || 1}</b></span><div class="stepper"><button data-qty="-1" aria-label="Менше">−</button><button data-qty="1" aria-label="Більше">+</button></div></div>` : ''}
     ${it.status === 'want' ? `<button class="big go" data-set="have">✓ Придбано — у колекцію</button>` : `<button class="big back" data-set="want">Перенести в «Хочу придбати»</button>`}
+    <button class="big plain" data-reimg>Оновити зображення</button>
     <button class="big plain" data-edit>Редагувати</button>
     <button class="big plain" data-remove style="color:var(--tint)">Видалити</button>`;
   $('#ov').dataset.id = id; $('#ov').hidden = false;
@@ -594,6 +638,7 @@ document.addEventListener('click', e => {
   else if (b.dataset.qty && it) { const n = (Number(it.qty) || 1) + Number(b.dataset.qty); if (n < 1) return; mutate(() => { it.qty = n; }); }
   else if (b.dataset.side && it) { if (ui.side !== b.dataset.side && !(ui.side === undefined && b.dataset.side === 'back')) { ui.side = b.dataset.side; flipAnim = true; openSheet(id); flipAnim = false; } }
   else if (b.dataset.flip !== undefined && it) { ui.side = ui.side === 'front' ? 'back' : 'front'; flipAnim = true; openSheet(id); flipAnim = false; }
+  else if (b.dataset.reimg !== undefined && it) { b.textContent = 'Шукаю…'; (async () => { let r = null; try { if (it.wiki) r = await articleImages(it); } catch(e) {} if (!r) { try { const rows = await wikiRows(); const re = it.wk ? new RegExp(it.wk, 'i') : null; const hit = re && rows.find(x => x.cells.some(c => re.test(c))); if (hit) r = { img: hit.imgs[0], imgBack: hit.imgs[1] || '', title: 'таблиця монет' }; } catch(e) {} } if (r) { mutate(() => { it.img = r.img; it.imgBack = r.imgBack; it.imgSource = 'Вікіпедія: «' + r.title + '» (зображення НБУ)'; }, 'Зображення оновлено'); } else { b.textContent = 'Не знайшов — спробуй «Редагувати» → «Знайти зображення»'; } })(); }
   else if (b.dataset.edit !== undefined && it) openForm(it);
   else if (b.dataset.remove !== undefined && it) { mutate(() => { items = items.filter(i => i.id !== id); removed.push(id); store.set('coins.removed', removed); }, `«${it.name}» видалено`); closeSheet(); }
   else if (b.dataset.findimg !== undefined) findImages();
@@ -602,7 +647,7 @@ document.addEventListener('click', e => {
 });
 
 render();
-wikiImages().finally(autoImages);
+wikiArticleImages().then(wikiImages).finally(autoImages);
 }
 </script>
 </body>
