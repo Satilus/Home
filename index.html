@@ -240,7 +240,7 @@ items.forEach(i => { if (TITLE_FIX[i.id] && i.title !== TITLE_FIX[i.id]) i.title
 let typeFixed = [];
 items.forEach(i => { if (TYPE_FIX[i.id] && i.type !== TYPE_FIX[i.id]) { i.type = TYPE_FIX[i.id]; typeFixed.push(i.id); } });
 let meta = store.get('lists.meta', {});
-if (store.get('lists.cachev', 0) < 3) { meta = {}; store.set('lists.meta', {}); store.set('lists.extras', {}); store.set('lists.cachev', 3); }
+if (store.get('lists.cachev', 0) < 4) { meta = {}; store.set('lists.meta', {}); store.set('lists.extras', {}); store.set('lists.cachev', 4); }
 let ui = Object.assign({ type:'series', status:'planned' }, store.get('lists.ui', {}));
 if (typeFixed.length) { typeFixed.forEach(id => { delete meta[id]; }); store.set('lists.meta', meta); const ex = store.get('lists.extras', {}); typeFixed.forEach(id => delete ex[id]); store.set('lists.extras', ex); store.set('lists.items', items); }
 let tmdbKey = store.get('lists.tmdb', '');
@@ -390,7 +390,7 @@ async function movieExtras(it){
   const claims = (ent && ent.claims) || {};
   const yt = ((claims.P1651 || [])[0] || {}).mainsnak;
   const ytId = yt && yt.datavalue && yt.datavalue.value;
-  if (ytId) ['maxresdefault', 'hq1', 'hq2', 'hq3'].forEach(k => shots.push({ thumb: `https://i.ytimg.com/vi/${ytId}/${k}.jpg`, full: `https://i.ytimg.com/vi/${ytId}/${k === 'maxresdefault' ? 'maxresdefault' : k}.jpg`, src: 'трейлер' }));
+  if (ytId) ['hq1', 'hq2', 'hq3', 'hqdefault'].forEach(k => shots.push({ thumb: `https://i.ytimg.com/vi/${ytId}/${k}.jpg`, full: `https://i.ytimg.com/vi/${ytId}/${k === 'hqdefault' ? 'maxresdefault' : k}.jpg`, src: 'трейлер' }));
   // 2) кадри зі статті Вікіпедії (крім постера, логотипів і svg)
   try {
     const d = await getJSON(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&generator=images&gimlimit=40&prop=imageinfo&iiprop=url|size&iiurlwidth=900&titles=${encodeURIComponent(title)}`);
@@ -446,10 +446,16 @@ async function loadExtras(it){
         shots = im.filter(x => x.type === 'background').slice(0, 8).map(x => { const r = x.resolutions || {}; const u = (r.medium || r.original || {}).url || ''; return { thumb: u.replace('http:','https:'), full: ((r.original || {}).url || u).replace('http:','https:') }; }).filter(x => x.thumb);
       }
     }
-    // запасний варіант лише за наявності ключа
-    if (!shots.length && tmdbKey) {
-      const r = await fromTMDB(it);
-      if (r && r.tmdbId) { const im = await getJSON(`https://api.themoviedb.org/3/${r.tmdbKind}/${r.tmdbId}/images?api_key=${encodeURIComponent(tmdbKey)}&include_image_language=null`); shots = (im.backdrops || []).slice(0, 8).map(b => ({ thumb: 'https://image.tmdb.org/t/p/w780' + b.file_path, full: 'https://image.tmdb.org/t/p/w1280' + b.file_path })); }
+    // якщо є ключ TMDB — додаємо його кадри (найкращі за якістю) на початок
+    if (tmdbKey) {
+      try {
+        const r = await fromTMDB(it);
+        if (r && r.tmdbId) {
+          const im = await getJSON(`https://api.themoviedb.org/3/${r.tmdbKind}/${r.tmdbId}/images?api_key=${encodeURIComponent(tmdbKey)}&include_image_language=null`);
+          const t = (im.backdrops || []).slice(0, 8).map(b => ({ thumb: 'https://image.tmdb.org/t/p/w780' + b.file_path, full: 'https://image.tmdb.org/t/p/w1280' + b.file_path }));
+          shots = t.concat(shots);
+        }
+      } catch(e) {}
     }
   } catch(e) {}
   const res = { shots, cast, note: '', t: Date.now() };
@@ -459,7 +465,7 @@ async function loadExtras(it){
 function extrasHTML(x){
   if (!x) return '<div class="box"><h3>Кадри та актори</h3><p class="hint">Завантажую…</p></div>';
   let h = '';
-  if (x.shots.length) h += `<div><div class="lbl" style="padding:0 4px 8px">Кадри</div><div class="shots">${x.shots.map((sh, i) => `<button data-shot="${i}" aria-label="Кадр ${i+1}"><img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(sh.thumb)}" onerror="this.parentNode.remove()"></button>`).join('')}</div></div>`;
+  if (x.shots.length) h += `<div><div class="lbl" style="padding:0 4px 8px">Кадри</div><div class="shots">${x.shots.map((sh, i) => `<button data-shot="${i}" aria-label="Кадр ${i+1}"><img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(sh.thumb)}" onload="if(this.naturalWidth&&this.naturalWidth<200)this.parentNode.remove()" onerror="this.parentNode.remove()"></button>`).join('')}</div></div>`;
   else if (x.note) h += `<p class="hint" style="padding:0 4px;margin:0">${esc(x.note)}</p>`;
   if (x.cast.length) h += `<div class="box"><h3>Актори</h3><div class="cast">${x.cast.map(a => `<div class="actor"><span class="ph">${a.photo ? `<img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(a.photo)}" onerror="this.remove()">` : esc(initials(a.name))}</span><span><b>${esc(a.name)}</b>${a.role ? `<small>${esc(a.role)}</small>` : ''}</span></div>`).join('')}</div></div>`;
   return h || '<p class="hint" style="padding:0 4px;margin:0">Кадрів і акторів для цієї назви не знайшлося.</p>';
