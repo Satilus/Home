@@ -232,12 +232,15 @@ let removed = store.get('lists.removed', []);
 let items = (store.get('lists.items', null) || []).filter(i => !BANNED_IDS.includes(i.id) && !i.ru);
 SEED.forEach(sd => { if (!items.some(i => i.id === sd.id) && !removed.includes(sd.id)) items.push(sd); });
 // виправлення типів зі стартового списку (напр. «Синій самурай», «Непереможний» → аніме)
+const PIN = { tvm: {"s1": 55138, "s2": 44458, "s3": 46562, "s4": 44933, "s5": 51112, "s6": 37196, "s7": 37336, "s8": 48945, "s9": 54198, "s10": 60920, "s11": 41428, "s12": 62357, "s13": 52341, "s14": 44778, "s15": 49041, "s16": 50603, "s17": 46656, "s18": 41007, "s19": 45039, "s21": 78570, "s22": 38052, "s23": 64992, "s25": 43687, "s26": 53647, "s27": 54285, "s28": 54128, "s30": 51394, "n3": 55121, "n9": 37781, "n10": 46, "n18": 34162, "n22": 35951, "n25": 40357, "n27": 75030, "n29": 54828, "n32": 51576, "a1": 69956, "a2": 64632}, wt: {"m1": "Dune: Part Two", "m2": "Oppenheimer (film)", "m3": "Interstellar (film)", "m4": "Blade Runner 2049", "m5": "Seven Samurai", "n1": "Wifelike", "n2": "Shallow Hal", "n4": "Tomorrowland (film)", "n5": "EXistenZ", "n6": "The King's Speech", "n7": "Rose Island (film)", "n8": "Sound of Metal", "n11": "You Should Have Left", "n13": "The Wonderful Story of Henry Sugar (film)", "n14": "The Belko Experiment", "n16": "Elysium (2013 film)", "n19": "Vacation Friends", "n21": "TiMER", "n23": "Three Thousand Years of Longing", "n24": "Slumdog Millionaire", "n28": "Arrival (film)", "n31": "The Brand New Testament", "n33": "Everything Everywhere All at Once", "n34": "Project Hail Mary (film)"}, tvmOnly: ["s5", "s6", "n32"] };
+items.forEach(i => { if (PIN.tvm[i.id]) i.tvm = PIN.tvm[i.id]; if (PIN.wt[i.id]) i.wt = PIN.wt[i.id]; if (PIN.tvmOnly.includes(i.id)) i.tvmOnly = true; });
 const TYPE_FIX = { s5: 'anime', s6: 'anime' };
 const TITLE_FIX = {"a1": "Фрірен, що проводжає в останню путь", "s5": "Блакитноокий самурай", "s21": "Юнацтво", "s22": "Таємниця бункера", "s27": "Сварка", "n17": "The Eminence in Shadow"};
 items.forEach(i => { if (TITLE_FIX[i.id] && i.title !== TITLE_FIX[i.id]) i.title = TITLE_FIX[i.id]; });
 let typeFixed = [];
 items.forEach(i => { if (TYPE_FIX[i.id] && i.type !== TYPE_FIX[i.id]) { i.type = TYPE_FIX[i.id]; typeFixed.push(i.id); } });
 let meta = store.get('lists.meta', {});
+if (store.get('lists.cachev', 0) < 3) { meta = {}; store.set('lists.meta', {}); store.set('lists.extras', {}); store.set('lists.cachev', 3); }
 let ui = Object.assign({ type:'series', status:'planned' }, store.get('lists.ui', {}));
 if (typeFixed.length) { typeFixed.forEach(id => { delete meta[id]; }); store.set('lists.meta', meta); const ex = store.get('lists.extras', {}); typeFixed.forEach(id => delete ex[id]); store.set('lists.extras', ex); store.set('lists.items', items); }
 let tmdbKey = store.get('lists.tmdb', '');
@@ -260,15 +263,37 @@ async function fromTMDB(it){
   if (!overview) { try { const en = await getJSON(`https://api.themoviedb.org/3/${kind}/${r.id}?api_key=${encodeURIComponent(tmdbKey)}&language=en-US`); overview = en.overview; } catch(e){} }
   return { poster: r.poster_path ? 'https://image.tmdb.org/t/p/w342' + r.poster_path : '', rating: r.vote_average ? r.vote_average.toFixed(1) : '', rsrc:'TMDB', overview, origFound: r.original_name || r.original_title, src:'TMDB', tmdbId: r.id, tmdbKind: kind };
 }
+const pickYear = (list, yr) => { const y = Number(yearOf(yr)); if (!y) return list[0]; return list.find(x => x.y === y) || list.find(x => Math.abs(x.y - y) <= 1) || list[0]; };
+async function tvmazeShow(it){
+  if (it.tvm) return getJSON('https://api.tvmaze.com/shows/' + it.tvm);
+  const res = await getJSON('https://api.tvmaze.com/search/shows?q=' + encodeURIComponent(it.orig || it.title));
+  const list = res.map(r => r.show).filter(sh => !isRussian({ language: sh.language, country: (sh.network||sh.webChannel||{}).country && (sh.network||sh.webChannel).country.code })).map(sh => Object.assign(sh, { y: Number(yearOf(sh.premiered)) }));
+  if (!list.length) return null;
+  const sh = pickYear(list, it.year); it.tvm = sh.id; save();
+  return sh;
+}
 async function fromTVmaze(it){
-  const s = await getJSON('https://api.tvmaze.com/singlesearch/shows?q=' + encodeURIComponent(it.orig || it.title));
+  const s = await tvmazeShow(it); if (!s) return null;
   return { poster: s.image ? (s.image.medium || s.image.original).replace('http:','https:') : '', rating: s.rating && s.rating.average ? s.rating.average.toFixed(1) : '', rsrc:'TVmaze', overview: stripHtml(s.summary), genres: (s.genres||[]).join(', '), src:'TVmaze', tvmazeId: s.id };
 }
+async function anilistMedia(it, fields){
+  if (it.ani) { const d = await getJSON('https://graphql.anilist.co', { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ query: `query($id:Int){Media(id:$id,type:ANIME){id startDate{year} ${fields}}}`, variables:{ id: it.ani } }) }); return d.data && d.data.Media; }
+  const d = await getJSON('https://graphql.anilist.co', { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ query: `query($s:String){Page(perPage:10){media(search:$s,type:ANIME,sort:SEARCH_MATCH){id startDate{year} ${fields}}}}`, variables:{ s: it.orig || it.title } }) });
+  const list = ((d.data && d.data.Page && d.data.Page.media) || []).map(m => Object.assign(m, { y: m.startDate && m.startDate.year }));
+  if (!list.length) return null;
+  const m = pickYear(list, it.year); it.ani = m.id; save();
+  return m;
+}
 async function fromAniList(it){
-  const query = 'query($s:String){Media(search:$s,type:ANIME){id coverImage{large} averageScore episodes genres description(asHtml:false)}}';
-  const d = await getJSON('https://graphql.anilist.co', { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ query, variables:{ s: it.orig || it.title } }) });
-  const m = d.data && d.data.Media; if (!m) return null;
+  if (it.tvmOnly) return fromTVmaze(it);
+  const m = await anilistMedia(it, 'coverImage{large} averageScore episodes genres description(asHtml:false)'); if (!m) return it.tvm ? fromTVmaze(it) : null;
   return { poster: m.coverImage && m.coverImage.large || '', rating: m.averageScore ? (m.averageScore/10).toFixed(1) : '', rsrc:'AniList', overview: stripHtml(m.description), episodes: m.episodes, genres:(m.genres||[]).join(', '), src:'AniList', anilistId: m.id };
+}
+async function wikiByTitle(title){
+  const d = await getJSON(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&titles=${encodeURIComponent(title)}&prop=extracts|pageimages&exintro=1&explaintext=1&exsentences=3&piprop=thumbnail|name&pithumbsize=500&pilicense=any`);
+  const p = d.query && d.query.pages && Object.values(d.query.pages)[0];
+  if (!p || 'missing' in p) return null;
+  return { poster: p.thumbnail ? p.thumbnail.source : '', overview: p.extract || '', src:'Вікіпедія', wikiTitle: p.title, pageImage: p.pageimage || '' };
 }
 async function fromWiki(lang, q){
   const url = `https://${lang}.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=1&gsrsearch=${encodeURIComponent(q)}&prop=extracts|pageimages&exintro=1&explaintext=1&exsentences=3&piprop=thumbnail&pithumbsize=500&pilicense=any`;
@@ -282,11 +307,11 @@ async function loadMeta(it, force){
   let m = null;
   try {
     if (tmdbKey) m = await fromTMDB(it);
-    else if (it.type === 'series') m = await fromTVmaze(it);
+    else if (it.type === 'series' || it.tvmOnly) m = await fromTVmaze(it);
     else if (it.type === 'anime') m = await fromAniList(it);
-    else m = await fromWiki('en', `${it.orig || it.title} ${yearOf(it.year)} film`);
+    else m = (it.wt && await wikiByTitle(it.wt)) || await fromWiki('en', `${it.orig || it.title} ${yearOf(it.year)} film`);
   } catch(e) { m = null; }
-  if ((!m || !m.poster) && it.type !== 'anime') {
+  if ((!m || !m.poster) && it.type !== 'anime' && !it.wt) {
     try { const w = await fromWiki('en', `${it.orig || it.title} ${yearOf(it.year)} ${it.type==='movie'?'film':'TV series'}`); if (w && w.poster) m = Object.assign({}, w, m || {}, { poster: w.poster }); } catch(e){}
   }
   if (!it.overview && !(m && m.overview && m.src==='TMDB')) {
@@ -347,57 +372,87 @@ $('#toastUndo').onclick = () => { if (undoSnap) { items = JSON.parse(undoSnap); 
 
 /* ---------- кадри та актори ---------- */
 const extrasCache = store.get('lists.extras', {});
+const WD = 'https://www.wikidata.org/w/api.php?format=json&origin=*&';
+const fp = (file, w) => 'https://commons.wikimedia.org/wiki/Special:FilePath/' + encodeURIComponent(file) + '?width=' + w;
+async function wikidataFilm(title){
+  const d = await getJSON(WD + 'action=wbgetentities&sites=enwiki&props=claims&titles=' + encodeURIComponent(title));
+  return Object.values(d.entities || {})[0] || null;
+}
+async function movieExtras(it){
+  const m = meta[it.id] || {};
+  let title = it.wt || m.wikiTitle;
+  if (!title) { const w = await fromWiki('en', `${it.orig || it.title} ${yearOf(it.year)} film`); title = w && w.wikiTitle; }
+  if (!title) return { shots: [], cast: [] };
+  const shots = [], cast = [];
+  // 1) кадри з трейлера (YouTube ID з Вікіданих, P1651)
+  let ent = null;
+  try { ent = await wikidataFilm(title); } catch(e) {}
+  const claims = (ent && ent.claims) || {};
+  const yt = ((claims.P1651 || [])[0] || {}).mainsnak;
+  const ytId = yt && yt.datavalue && yt.datavalue.value;
+  if (ytId) ['maxresdefault', 'hq1', 'hq2', 'hq3'].forEach(k => shots.push({ thumb: `https://i.ytimg.com/vi/${ytId}/${k}.jpg`, full: `https://i.ytimg.com/vi/${ytId}/${k === 'maxresdefault' ? 'maxresdefault' : k}.jpg`, src: 'трейлер' }));
+  // 2) кадри зі статті Вікіпедії (крім постера, логотипів і svg)
+  try {
+    const d = await getJSON(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&generator=images&gimlimit=40&prop=imageinfo&iiprop=url|size&iiurlwidth=900&titles=${encodeURIComponent(title)}`);
+    const poster = (m.pageImage || '').toLowerCase().replace(/_/g, ' ');
+    Object.values((d.query || {}).pages || {}).forEach(p => {
+      const ii = p.imageinfo && p.imageinfo[0]; if (!ii) return;
+      const name = p.title.replace(/^File:/, '').toLowerCase();
+      if (!/\.(jpe?g|png|webp)$/.test(name) || /poster|logo|icon|flag|symbol|commons-|wiki|question_book|signature/.test(name) || (poster && name === poster)) return;
+      if ((ii.width || 0) < 300 || (ii.width || 0) < (ii.height || 0)) return; // кадри горизонтальні
+      shots.push({ thumb: ii.thumburl || ii.url, full: ii.url, src: 'Вікіпедія' });
+    });
+  } catch(e) {}
+  // 3) актори з Вікіданих (P161) з ролями (P453) і фото (P18)
+  try {
+    const cl = (claims.P161 || []).slice(0, 8);
+    const actorIds = cl.map(c => c.mainsnak.datavalue && c.mainsnak.datavalue.value.id).filter(Boolean);
+    const roleIds = cl.map(c => (((c.qualifiers || {}).P453 || [])[0] || {}).datavalue).map(v => v && v.value.id);
+    const ids = actorIds.concat(roleIds.filter(Boolean));
+    if (ids.length) {
+      const l = await getJSON(WD + 'action=wbgetentities&props=labels|claims&languages=uk|en&ids=' + ids.join('|'));
+      const lab = q => { const e = l.entities[q]; const lb = e && e.labels && (e.labels.uk || e.labels.en); return lb ? lb.value : ''; };
+      actorIds.forEach((q, i) => {
+        const e = l.entities[q]; const img = e && e.claims && e.claims.P18 && e.claims.P18[0].mainsnak.datavalue;
+        cast.push({ name: lab(q), role: roleIds[i] ? lab(roleIds[i]) : '', photo: img ? fp(img.value, 120) : '' });
+      });
+    }
+  } catch(e) {}
+  return { shots: shots.slice(0, 10), cast: cast.filter(a => a.name) };
+}
 async function loadExtras(it){
   const c = extrasCache[it.id];
   if (c && c.t > Date.now() - 1000*60*60*24*30 && (c.shots.length || c.cast.length)) return c;
-  const m = meta[it.id] || {};
-  let shots = [], cast = [], note = '';
+  let shots = [], cast = [];
   try {
-    if (tmdbKey) {
-      let id = m.tmdbId, kind = m.tmdbKind || (it.type === 'movie' ? 'movie' : 'tv');
-      if (!id) { const r = await fromTMDB(it); if (r) { id = r.tmdbId; kind = r.tmdbKind; } }
-      if (id) {
-        const k = encodeURIComponent(tmdbKey);
-        const [im, cr] = await Promise.all([
-          getJSON(`https://api.themoviedb.org/3/${kind}/${id}/images?api_key=${k}&include_image_language=null`),
-          getJSON(`https://api.themoviedb.org/3/${kind}/${id}/${kind === 'tv' ? 'aggregate_credits' : 'credits'}?api_key=${k}&language=uk-UA`)
-        ]);
-        shots = (im.backdrops || []).slice(0, 8).map(b => ({ thumb: 'https://image.tmdb.org/t/p/w780' + b.file_path, full: 'https://image.tmdb.org/t/p/w1280' + b.file_path }));
-        cast = (cr.cast || []).slice(0, 8).map(a => ({ name: a.name, role: a.character || (a.roles && a.roles[0] && a.roles[0].character) || '', photo: a.profile_path ? 'https://image.tmdb.org/t/p/w185' + a.profile_path : '' }));
-      }
-    } else if (it.type === 'series') {
-      let id = m.tvmazeId;
-      if (!id) { const r = await fromTVmaze(it); id = r && r.tvmazeId; }
-      if (id) {
-        const [im, cr] = await Promise.all([getJSON(`https://api.tvmaze.com/shows/${id}/images`), getJSON(`https://api.tvmaze.com/shows/${id}/cast`)]);
+    if (it.type === 'movie') {
+      ({ shots, cast } = await movieExtras(it));
+    } else if (it.type === 'series' || it.tvmOnly) {
+      const sh = await tvmazeShow(it);
+      if (sh) {
+        const [im, cr] = await Promise.all([getJSON(`https://api.tvmaze.com/shows/${sh.id}/images`), getJSON(`https://api.tvmaze.com/shows/${sh.id}/cast`)]);
         const pick = im.filter(x => x.type === 'background').concat(im.filter(x => x.type === 'banner'));
         shots = pick.slice(0, 8).map(x => { const r = x.resolutions || {}; const u = (r.medium || r.original || {}).url || ''; return { thumb: u.replace('http:','https:'), full: ((r.original || r.medium || {}).url || u).replace('http:','https:') }; }).filter(x => x.thumb);
         cast = cr.slice(0, 8).map(a => ({ name: a.person.name, role: a.character && a.character.name || '', photo: a.person.image ? a.person.image.medium.replace('http:','https:') : '' }));
       }
-    } else if (it.type === 'anime') {
-      const query = 'query($s:String){Media(search:$s,type:ANIME){bannerImage streamingEpisodes{thumbnail} characters(sort:[ROLE,RELEVANCE],perPage:8){edges{node{name{full}} voiceActors(language:JAPANESE,sort:RELEVANCE){name{full} image{medium}}}}}}';
-      const d = await getJSON('https://graphql.anilist.co', { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ query, variables:{ s: it.orig || it.title } }) });
-      const md = d.data && d.data.Media;
+    } else {
+      const md = await anilistMedia(it, 'bannerImage streamingEpisodes{thumbnail} characters(sort:[ROLE,RELEVANCE],perPage:8){edges{node{name{full}} voiceActors(language:JAPANESE,sort:RELEVANCE){name{full} image{medium}}}}');
       if (md) {
         shots = [md.bannerImage].filter(Boolean).concat((md.streamingEpisodes || []).map(e => e.thumbnail)).filter(Boolean).slice(0, 8).map(u => ({ thumb: u, full: u }));
         cast = (md.characters.edges || []).map(e => { const va = e.voiceActors && e.voiceActors[0]; return { name: va ? va.name.full : e.node.name.full, role: va ? 'озвучує ' + e.node.name.full : '', photo: va && va.image ? va.image.medium : '' }; });
       }
-    } else {
-      let title = m.wikiTitle;
-      if (!title) { const w = await fromWiki('en', `${it.orig || it.title} ${yearOf(it.year)} film`); title = w && w.wikiTitle; }
-      if (title) {
-        const d = await getJSON(`https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&origin=*&sites=enwiki&titles=${encodeURIComponent(title)}&props=claims`);
-        const ent = Object.values(d.entities || {})[0];
-        const ids = ((ent && ent.claims && ent.claims.P161) || []).slice(0, 8).map(cl => cl.mainsnak.datavalue && cl.mainsnak.datavalue.value.id).filter(Boolean);
-        if (ids.length) {
-          const l = await getJSON(`https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&origin=*&ids=${ids.join('|')}&props=labels&languages=uk|en`);
-          cast = ids.map(q => { const e = l.entities[q]; const lb = e && e.labels && (e.labels.uk || e.labels.en); return { name: lb ? lb.value : '', role: '', photo: '' }; }).filter(a => a.name);
-        }
+      if (!shots.length && it.tvm) {
+        const im = await getJSON(`https://api.tvmaze.com/shows/${it.tvm}/images`);
+        shots = im.filter(x => x.type === 'background').slice(0, 8).map(x => { const r = x.resolutions || {}; const u = (r.medium || r.original || {}).url || ''; return { thumb: u.replace('http:','https:'), full: ((r.original || {}).url || u).replace('http:','https:') }; }).filter(x => x.thumb);
       }
-      note = 'Кадри з фільмів з\'являться, якщо додати ключ TMDB у налаштуваннях (⚙).';
+    }
+    // запасний варіант лише за наявності ключа
+    if (!shots.length && tmdbKey) {
+      const r = await fromTMDB(it);
+      if (r && r.tmdbId) { const im = await getJSON(`https://api.themoviedb.org/3/${r.tmdbKind}/${r.tmdbId}/images?api_key=${encodeURIComponent(tmdbKey)}&include_image_language=null`); shots = (im.backdrops || []).slice(0, 8).map(b => ({ thumb: 'https://image.tmdb.org/t/p/w780' + b.file_path, full: 'https://image.tmdb.org/t/p/w1280' + b.file_path })); }
     }
   } catch(e) {}
-  const res = { shots, cast, note, t: Date.now() };
+  const res = { shots, cast, note: '', t: Date.now() };
   extrasCache[it.id] = res; store.set('lists.extras', extrasCache);
   return res;
 }
