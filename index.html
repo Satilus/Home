@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Тю і Шо</title>
-<meta name="apple-mobile-web-app-title" content="Тю і Шо">
-<meta name="application-name" content="Тю і Шо">
+<title>Тю і Шо глянемо</title>
+<meta name="apple-mobile-web-app-title" content="Тю і Шо глянемо">
+<meta name="application-name" content="Тю і Шо глянемо">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="theme-color" content="#E0261C">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<script src="shared.js?v=14"></script>
-<script src="phrases.js?v=14"></script>
+<script src="shared.js?v=15"></script>
+<script src="phrases.js?v=15"></script>
 <style>
 :root{color-scheme:light dark;
   --bg:#F2F2F7;--card:#FFFFFF;--ink:#000;--ink2:#3A3A3C;--muted:#6C6C70;--sep:#D1D1D6;--seg:#E3E3E8;--segOn:#FFFFFF;--fill:#EFEFF4;
@@ -74,6 +74,7 @@ h2.sec a{font-size:15px;font-weight:600;color:var(--tint);text-decoration:none}
 .set{padding:14px 16px;border-radius:20px;background:var(--card);display:flex;flex-direction:column;gap:10px}
 .set h3{margin:0;font-size:13px;font-weight:600;text-transform:uppercase;color:var(--muted)}
 .set p{margin:0;font-size:14px;color:var(--ink2);line-height:1.45}.set a{color:var(--tint)}
+.steps{margin:0;padding-left:20px;font-size:14px;color:var(--ink2);line-height:1.5;display:flex;flex-direction:column;gap:4px}
 .set input{min-height:44px;border:0;border-radius:12px;background:var(--fill);padding:0 12px;font:inherit;font-size:16px;color:inherit}
 .actions{display:grid;grid-template-columns:1.4fr 1fr;gap:10px;margin-top:12px}
 .act{display:flex;align-items:center;gap:12px;text-align:left;padding:14px;border-radius:22px;border:0;min-height:76px;transition:transform .35s cubic-bezier(.32,.72,0,1)}
@@ -238,13 +239,13 @@ h2.sec a{font-size:15px;font-weight:600;color:var(--tint);text-decoration:none}
   #splash,.th-silent,.th-vhs,.th-cosmos .ring{animation:none!important}
 }
 </style>
-<link rel="stylesheet" href="glass.css?v=14">
-<script src="motion.js?v=14" defer></script>
+<link rel="stylesheet" href="glass.css?v=15">
+<script src="motion.js?v=15" defer></script>
 </head>
 <body>
 <div class="wrap" id="app">
   <header>
-    <div><div class="eyebrow" id="today">Тю і Шо</div><h1>Тю і Шо</h1></div>
+    <div><div class="eyebrow" id="today">Тю і Шо глянемо</div><h1>Тю і Шо глянемо</h1></div>
     <div><button class="iconbtn" id="btnSettings" aria-label="Налаштування"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg></button></div>
   </header>
 
@@ -328,7 +329,7 @@ function loadFont(t){
   const l = document.createElement('link'); l.rel = 'stylesheet';
   l.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(t.font).replace(/%20/g,'+')}:${spec}&display=swap`;
   document.head.appendChild(l);
-  const wait = new Promise(res => { l.onload = () => { (document.fonts ? document.fonts.load(`${italic ? 'italic ' : ''}${t.w.replace('1,','')} 40px "${t.font}"`, 'Тю і Шо') : Promise.resolve()).then(res, res); }; l.onerror = res; });
+  const wait = new Promise(res => { l.onload = () => { (document.fonts ? document.fonts.load(`${italic ? 'italic ' : ''}${t.w.replace('1,','')} 40px "${t.font}"`, 'Тю і Шо глянемо') : Promise.resolve()).then(res, res); }; l.onerror = res; });
   return Promise.race([wait, new Promise(r => setTimeout(r, 1400))]);
 }
 
@@ -676,7 +677,7 @@ async function shareYear(st){
   const g = x.createLinearGradient(0, 0, 1080, 1350); g.addColorStop(0, '#E0261C'); g.addColorStop(.55, '#7B2FF7'); g.addColorStop(1, '#0B0B1A'); x.fillStyle = g; x.fillRect(0, 0, 1080, 1350);
   [[180, 220, 380, 'rgba(255,170,60,.35)'], [900, 400, 420, 'rgba(255,255,255,.12)'], [600, 1150, 500, 'rgba(60,180,255,.25)']].forEach(([cx, cy, r, col]) => { const rg = x.createRadialGradient(cx, cy, 0, cx, cy, r); rg.addColorStop(0, col); rg.addColorStop(1, 'transparent'); x.fillStyle = rg; x.fillRect(0, 0, 1080, 1350); });
   x.fillStyle = '#fff'; x.textBaseline = 'top'; const F = (w, s) => `${w} ${s}px -apple-system, "SF Pro Display", "Segoe UI", Roboto, sans-serif`;
-  x.font = F(700, 40); x.globalAlpha = .8; x.fillText('Тю і Шо', 90, 90); x.globalAlpha = 1;
+  x.font = F(700, 40); x.globalAlpha = .8; x.fillText('Тю і Шо глянемо', 90, 90); x.globalAlpha = 1;
   x.font = F(800, 150); x.fillText(String(st.Y), 90, 160); x.font = F(600, 52); x.fillText('мій рік у кіно', 90, 330);
   x.font = F(800, 260); x.fillText(String(st.list.length), 90, 430); x.font = F(600, 46); x.fillText('переглянуто', 96, 700);
   x.font = F(600, 44); let y = 800;
@@ -690,6 +691,18 @@ async function shareYear(st){
 
 
 /* ---------- налаштування ---------- */
+async function paintPush(sh){
+  const box = sh.querySelector('#pushSet'); if (!box || !window.TyuPush) return;
+  const st = await window.TyuPush.status();
+  const steps = `<ol class="steps"><li>Увімкни синхронізацію в «Дані» (хмаринка).</li><li>На GitHub у репозиторії Home: Settings → Secrets and variables → Actions → New repository secret. Назва <b>GIST_TOKEN</b>, значення — той самий токен, що для синхронізації.</li><li>Натисни «Увімкнути» нижче й дозволь сповіщення.</li></ol>`;
+  let html = '<h3>Сповіщення про нові серії</h3>';
+  if (!st.ok && st.why === 'install') html += '<p>На iPhone сповіщення працюють лише для сайту, встановленого на екран: Safari → «Поділитися» → «На екран Додому». Потім відкрий його з іконки й повернись сюди.</p>';
+  else if (!st.ok) html += '<p>Цей браузер не підтримує push-сповіщення.</p>';
+  else if (st.on) html += '<p>Увімкнено ✓ Щогодини перевіряю серіали зі статусом «Дивлюся» й надсилаю сповіщення, щойно виходить нова серія.</p><div class="btns"><button class="btn" data-push="off">Вимкнути на цьому пристрої</button></div>';
+  else html += `<p>Сповіщення приходитимуть, навіть коли сайт закрито. Що потрібно:</p>${steps}<div class="btns"><button class="btn go" data-push="on">Увімкнути</button></div>`;
+  box.innerHTML = html;
+}
+
 function settingsSheet(){
   const key = store.get('lists.tmdb', '');
   const sh = hSheet(`<div class="wz-top"><span style="font-size:17px;font-weight:700">Налаштування</span><button class="done" data-hx>Готово</button></div>
@@ -697,8 +710,15 @@ function settingsSheet(){
       <p>Без ключа постери й описи беруться з TVmaze, AniList і Вікіпедії. З ключем — описи українською, кращі постери, фільми в прокаті, «Де дивитися» й схожі фільми. Ключ зберігається тільки в цьому браузері й не синхронізується.</p>
       <input id="keyIn" type="password" autocomplete="off" placeholder="API Key (v3)" value="${esc(key)}" aria-label="Ключ TMDB">
       <p><a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">Отримати ключ на themoviedb.org</a></p></div>
-    <div class="btns"><button class="btn go" data-savekey>Зберегти</button>${key ? '<button class="btn" data-delkey>Видалити ключ</button>' : ''}</div>`, 'Налаштування');
+    <div class="btns"><button class="btn go" data-savekey>Зберегти</button>${key ? '<button class="btn" data-delkey>Видалити ключ</button>' : ''}</div>
+    <div class="set" id="pushSet"><h3>Сповіщення про нові серії</h3><p>Перевіряю…</p></div>`, 'Налаштування');
+  paintPush(sh);
   sh.onclick = e => {
+    const pb = e.target.closest('[data-push]');
+    if (pb) { pb.disabled = true; const on = pb.dataset.push === 'on';
+      (on ? window.TyuPush.enable() : window.TyuPush.disable()).then(() => { toast(on ? 'Сповіщення ввімкнено 🔔' : 'Сповіщення вимкнено'); paintPush(sh); })
+        .catch(err => { const p = sh.querySelector('#pushSet p'); if (p) p.textContent = err.message; pb.disabled = false; });
+      return; }
     const save = e.target.closest('[data-savekey]'), del = e.target.closest('[data-delkey]'); if (!save && !del) return;
     const v = del ? '' : sh.querySelector('#keyIn').value.trim();
     store.set('lists.tmdb', v);

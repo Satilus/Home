@@ -1,11 +1,11 @@
-/* «Тю і Шо» — спільне для всіх сторінок (Головна, Кінотеатр): резервна копія, синхронізація через GitHub Gist, PWA.
+/* «Тю і Шо глянемо» — спільне для всіх сторінок (Головна, Кінотеатр): резервна копія, синхронізація через GitHub Gist, PWA.
    Токен GitHub вводить користувач; він зберігається лише в цьому браузері й ніколи не потрапляє в копію чи Gist. */
 (function () {
   'use strict';
   const FILE = 'tyuisho.json';
   const PREFIXES = ['lists.'];
   /* кеші та ключі — не синхронізуємо */
-  const SKIP = new Set(['lists.meta', 'lists.extras', 'lists.more', 'lists.tmdb', 'lists.cachev']);
+  const SKIP = new Set(['lists.meta', 'lists.extras', 'lists.more', 'lists.cols', 'lists.epcache', 'lists.tmdb', 'lists.cachev']);
   const isData = k => PREFIXES.some(p => k.startsWith(p)) && !SKIP.has(k);
   const ls = window.localStorage;
   const get = (k, d) => { try { const v = ls.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
@@ -29,7 +29,7 @@
     return { app: 'tyuisho', version: 1, updated: Date.now(), data };
   }
   function apply(snap) {
-    if (!snap || snap.app !== 'tyuisho' || !snap.data) throw new Error('Це не файл «Тю і Шо»');
+    if (!snap || snap.app !== 'tyuisho' || !snap.data) throw new Error('Це не файл «Тю і Шо глянемо»');
     applying = true;
     try {
       const keys = []; for (let i = 0; i < ls.length; i++) keys.push(ls.key(i));
@@ -70,7 +70,7 @@
   }
   async function push() {
     const snap = snapshot();
-    const body = JSON.stringify({ description: 'Тю і Шо — дані сайту (не видаляти)', files: { [FILE]: { content: JSON.stringify(snap) } } });
+    const body = JSON.stringify({ description: 'Тю і Шо глянемо — дані сайту (не видаляти)', files: { [FILE]: { content: JSON.stringify(snap) } } });
     let id = await findGist();
     if (id) await gh('/gists/' + id, { method: 'PATCH', body });
     else { const g = await gh('/gists', { method: 'POST', body: JSON.stringify(Object.assign(JSON.parse(body), { public: false })) }); id = g.id; put('sync.cfg', Object.assign(cfg(), { gist: id })); }
@@ -158,12 +158,54 @@
     const blob = new Blob([JSON.stringify(snapshot(), null, 1)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'tyu-i-sho-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.download = 'tyu-i-sho-hlianemo-' + new Date().toISOString().slice(0, 10) + '.json';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     put('sync.lastBackup', Date.now()); ls.removeItem('sync.dirtyBackup');
   }
 
+
+
+  /* ---- push-сповіщення про нові серії ----
+     Ключі VAPID створюються в браузері й зберігаються лише в lists.push (синхронізується у твій приватний Gist).
+     Надсилає сповіщення GitHub Actions (.github/workflows/new-episodes.yml) з секретом GIST_TOKEN. */
+  const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const fromB64u = s => { const b = atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)); return Uint8Array.from(b, c => c.charCodeAt(0)); };
+  const standalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  async function pushStatus() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return { ok: false, why: /iPhone|iPad/.test(navigator.userAgent) && !standalone() ? 'install' : 'unsupported' };
+    if (/iPhone|iPad/.test(navigator.userAgent) && !standalone()) return { ok: false, why: 'install' };
+    const reg = await navigator.serviceWorker.getRegistration(); const sub = reg && await reg.pushManager.getSubscription();
+    return { ok: true, on: !!sub && Notification.permission === 'granted', perm: Notification.permission, sync: !!cfg().token };
+  }
+  async function pushEnable() {
+    if (!cfg().token) throw new Error('Спершу увімкни синхронізацію в «Дані» — через неї сповіщення дізнаються, що ти дивишся.');
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') throw new Error('Дозвіл на сповіщення не надано. Його можна ввімкнути в Параметрах iPhone → Сповіщення.');
+    const data = get('lists.push', {}) || {};
+    if (!data.vapid) {
+      const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign']);
+      data.vapid = { pub: b64u(await crypto.subtle.exportKey('raw', kp.publicKey)), d: (await crypto.subtle.exportKey('jwk', kp.privateKey)).d };
+    }
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (sub && sub.options && sub.options.applicationServerKey && b64u(sub.options.applicationServerKey) !== data.vapid.pub) { await sub.unsubscribe(); sub = null; }
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: fromB64u(data.vapid.pub) });
+    const j = sub.toJSON();
+    data.subs = (data.subs || []).filter(x => x.endpoint !== j.endpoint).concat([{ endpoint: j.endpoint, keys: j.keys, ua: navigator.userAgent.slice(0, 60), at: Date.now() }]);
+    data.on = true;
+    origSet.call(ls, 'lists.push', JSON.stringify(data)); put('sync.dirty', Date.now());
+    await push();
+    return true;
+  }
+  async function pushDisable() {
+    const reg = await navigator.serviceWorker.getRegistration(); const sub = reg && await reg.pushManager.getSubscription();
+    const data = get('lists.push', {}) || {};
+    if (sub) { data.subs = (data.subs || []).filter(x => x.endpoint !== sub.endpoint); await sub.unsubscribe().catch(() => {}); }
+    origSet.call(ls, 'lists.push', JSON.stringify(data)); put('sync.dirty', Date.now());
+    if (cfg().token) await push().catch(() => {});
+  }
+  window.TyuPush = { status: pushStatus, enable: pushEnable, disable: pushDisable };
 
   /* ---- нагадування про резервну копію (якщо синхронізація вимкнена) ---- */
   function backupReminder() {

@@ -1,0 +1,22 @@
+name: Сповіщення про нові серії
+on:
+  schedule:
+    - cron: '23 * * * *'   # щогодини
+  workflow_dispatch: {}
+permissions:
+  contents: read
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Встановити web-push
+        run: npm install --no-audit --no-fund --prefix .github/scripts web-push@3
+      - name: Перевірити нові серії й надіслати сповіщення
+        run: node .github/scripts/notify.mjs
+        env:
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
