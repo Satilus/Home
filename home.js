@@ -158,11 +158,10 @@ const posterOf = it => (meta[it.id] && meta[it.id].poster) || it.poster || '';
 const posterHTML = (id, title, src) => `<span class="poster" data-p="${esc(id)}" style="background:${tint(id)}">${esc(initials(title))}${src ? `<img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(src)}" data-ok data-rm>` : ''}</span>`;
 let toastT; const toast = t => { $('#toast').textContent = t; $('#toast').hidden = false; clearTimeout(toastT); toastT = setTimeout(() => $('#toast').hidden = true, 3000); };
 
-function renderTop(text){
+function renderTop(){
   const dt = new Date().toLocaleDateString('uk-UA', { weekday: 'long', day: 'numeric', month: 'long' }); $('#today').textContent = dt.charAt(0).toUpperCase() + dt.slice(1);
   const h = new Date().getHours();
   document.querySelector('h1').textContent = h < 5 ? 'Доброї ночі' : h < 12 ? 'Доброго ранку' : h < 18 ? 'Доброго дня' : 'Доброго вечора';
-  $('#quote').innerHTML = `${esc(text)}<small>Фраза дня</small>`;
   const watched = items.filter(i => i.status === 'watched'), fire = watched.filter(i => i.pep === 5).length;
   $('#stats').innerHTML = `<span><b>${items.filter(i => i.status === 'planned').length}</b>у планах</span><i></i><span><b>${watched.length}</b>переглянуто</span><i></i><span><b>${fire}</b>🔥</span>`;
 }
@@ -286,7 +285,7 @@ document.addEventListener('click', e => {
     if (n.tvm) it.tvm = n.tvm;
     const all = store.get('lists.items', []) || []; all.unshift(it); store.set('lists.items', all); items.unshift(it);
     if (n.poster) { const m = store.get('lists.meta', {}); m[it.id] = { poster: n.poster, t: 0 }; store.set('lists.meta', m); meta[it.id] = m[it.id]; }
-    b.disabled = true; b.textContent = '✓'; toast(`«${n.title}» додано в «Планую»`); window.TyuSound && TyuSound.play('pop'); renderTop($('#quote').firstChild.textContent); renderPick();
+    b.disabled = true; b.textContent = '✓'; toast(`«${n.title}» додано в «Планую»`); window.TyuSound && TyuSound.play('pop'); renderTop(); renderPick();
   }
 });
 
@@ -505,7 +504,7 @@ async function renderNewsTeaser(){
 let phrase = sessionStorage.getItem('home.phrase');
 const first = !phrase || QS.has('theme');
 if (first) { phrase = QS.has('theme') && phrase ? phrase : nextPhrase(); sessionStorage.setItem('home.phrase', phrase); }
-renderTop(phrase); renderWatching(); renderPick(); renderNews(); renderEpisodes().catch(() => {}); renderNewsTeaser();
+renderTop(); renderWatching(); renderPick(); renderNews(); renderEpisodes().catch(() => {}); renderNewsTeaser();
 $('#wizBtn').onclick = () => wizard(0); $('#btnSettings').onclick = settingsSheet;
 $('#disc').onclick = e => { const b = e.currentTarget; b.setAttribute('aria-expanded', b.getAttribute('aria-expanded') !== 'true'); }; $('#yearBtn').onclick = yearSheet;
 if (first) splash(phrase);
