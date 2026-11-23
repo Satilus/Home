@@ -1,7 +1,7 @@
 name: Стрічка новин кіно
 on:
   schedule:
-    - cron: '41 */2 * * *'   # кожні дві години
+    - cron: '17 4 * * *'   # раз на день, ~06:17 за Києвом
   workflow_dispatch: {}
   push:
     branches: [main]

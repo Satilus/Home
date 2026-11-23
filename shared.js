@@ -2,6 +2,20 @@
    Токен GitHub вводить користувач; він зберігається лише в цьому браузері й ніколи не потрапляє в копію чи Gist. */
 (function () {
   'use strict';
+  /* ---- журнал помилок (sys.errlog, не синхронізується; останні 50) ---- */
+  const APP_VER = ((document.currentScript && document.currentScript.src.match(/[?&]v=(\d+)/)) || [])[1] || '?';
+  const rawSet = Storage.prototype.setItem;   // без обгортки — щоб журнал не зациклювався при заповненій пам'яті
+  function logErr(msg, extra) {
+    try {
+      const L = JSON.parse(localStorage.getItem('sys.errlog') || '[]');
+      L.push({ t: Date.now(), m: String(msg).slice(0, 300), x: extra ? String(extra).slice(0, 300) : '', p: location.pathname.split('/').pop() || 'index.html', v: APP_VER });
+      rawSet.call(localStorage, 'sys.errlog', JSON.stringify(L.slice(-50)));
+    } catch (e) {}
+  }
+  window.addEventListener('error', e => { if (e.message) logErr(e.message, (e.filename || '').split('/').pop() + ':' + (e.lineno || 0) + ':' + (e.colno || 0)); });
+  window.addEventListener('unhandledrejection', e => { const r = e.reason; logErr('Promise: ' + (r && (r.message || r.name) || r), r && r.stack ? String(r.stack).split('\n')[1] : ''); });
+  window.TyuLog = logErr;
+
   /* ---- захист від вбудовування в чужі сторінки (клікджекінг) ---- */
   if (window.top !== window.self) { document.documentElement.style.display = 'none'; try { window.top.location = window.self.location.href; } catch (e) {} }
 
@@ -80,14 +94,30 @@
   const isData = k => PREFIXES.some(p => k.startsWith(p)) && !SKIP.has(k);
   const ls = window.localStorage;
   const get = (k, d) => { try { const v = ls.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
-  const put = (k, v) => { try { origSet.call(ls, k, JSON.stringify(v)); } catch (e) {} };
+  const put = (k, v) => { try { safeSet(ls, k, JSON.stringify(v)); } catch (e) {} };
 
   /* ---- відстеження змін ---- */
   const origSet = Storage.prototype.setItem;
   let pushT = null, applying = false;
+  /* кеші, які можна видалити, якщо пам'ять браузера заповнена (від найменш цінного) */
+  const CACHE_KEYS = ['lists.extras', 'lists.more', 'lists.cols', 'home.news', 'news.cache', 'home.eps', 'lists.epcache', 'lists.meta'];
+  function safeSet(st, k, v) {
+    try { origSet.call(st, k, v); return; }
+    catch (e) {
+      if (!/quota|exceed/i.test((e && (e.name + ' ' + e.message)) || '')) throw e;
+      for (const c of CACHE_KEYS) {
+        if (c === k || st.getItem(c) === null) continue;
+        st.removeItem(c);
+        try { origSet.call(st, k, v); logErr('Пам\'ять браузера заповнена — очищено кеш ' + c); return; } catch (e2) {}
+      }
+      logErr('Не вдалося зберегти ' + k + ': пам\'ять браузера заповнена');
+      if (/^lists\.(items|ui|push|theme)$/.test(k)) setTimeout(() => alert('Пам\'ять браузера заповнена — останні зміни не збереглися. Відкрий «Дані» й натисни «Очистити кеш» або збережи резервну копію.'), 0);
+      throw e;
+    }
+  }
   Storage.prototype.setItem = function (k, v) {
     const old = this === ls ? this.getItem(k) : null;
-    origSet.call(this, k, v);
+    safeSet(this, k, v);
     if (this === ls && !applying && isData(k) && old !== null && old !== v) {
       put('sync.dirty', Date.now());
       if (cfg().token) { clearTimeout(pushT); pushT = setTimeout(() => push().catch(() => {}), 4000); }
@@ -192,7 +222,7 @@
   .syncov .st{font-size:13px;color:var(--muted,#6C6C70)}
   .syncov a{color:var(--tint,#E0261C)}
   .syncbtn{width:44px;height:44px;border:0;background:transparent;color:var(--tint,#E0261C);display:inline-flex;align-items:center;justify-content:center;border-radius:22px;position:relative}
-  .bk-remind{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:12px 14px;border-radius:20px;background:var(--glass,var(--card));border:.5px solid var(--glass-edge,transparent);box-shadow:inset 0 1px 0 var(--glass-hi,transparent),0 8px 24px rgba(0,0,0,.08);animation:bkIn .55s cubic-bezier(.32,.72,0,1) both;transition:opacity .35s,transform .35s}\n  .bk-remind.bk-out{opacity:0;transform:translateY(-10px) scale(.97)}\n  @keyframes bkIn{from{opacity:0;transform:translateY(-12px) scale(.97)}}\n  .bk-e{font-size:26px}.bk-t{flex:1;display:flex;flex-direction:column}.bk-t b{font-size:15px}.bk-t small{font-size:12px;color:var(--muted,#6C6C70);line-height:1.35}\n  .bk-b{display:flex;flex-direction:column;gap:6px}.bk-b button{min-height:32px;padding:0 12px;border:0;border-radius:999px;font:600 13px -apple-system,system-ui,sans-serif;background:var(--fill,#EFEFF4);color:var(--ink,#000)}.bk-b button:first-child{background:var(--tint,#E0261C);color:#fff}\n  .updbtn.spin svg{animation:updspin .9s linear infinite}@keyframes updspin{to{transform:rotate(360deg)}}\n  .syncbtn[data-dirty]::after{content:"";position:absolute;top:10px;right:9px;width:8px;height:8px;border-radius:4px;background:var(--star,#FF9F0A)}`;
+  .bk-remind{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:12px 14px;border-radius:20px;background:var(--glass,var(--card));border:.5px solid var(--glass-edge,transparent);box-shadow:inset 0 1px 0 var(--glass-hi,transparent),0 8px 24px rgba(0,0,0,.08);animation:bkIn .55s cubic-bezier(.32,.72,0,1) both;transition:opacity .35s,transform .35s}\n  .bk-remind.bk-out{opacity:0;transform:translateY(-10px) scale(.97)}\n  @keyframes bkIn{from{opacity:0;transform:translateY(-12px) scale(.97)}}\n  .bk-e{font-size:26px}.bk-t{flex:1;display:flex;flex-direction:column}.bk-t b{font-size:15px}.bk-t small{font-size:12px;color:var(--muted,#6C6C70);line-height:1.35}\n  .bk-b{display:flex;flex-direction:column;gap:6px}.bk-b button{min-height:32px;padding:0 12px;border:0;border-radius:999px;font:600 13px -apple-system,system-ui,sans-serif;background:var(--fill,#EFEFF4);color:var(--ink,#000)}.bk-b button:first-child{background:var(--tint,#E0261C);color:#fff}\n  .updbtn.spin svg{animation:updspin .9s linear infinite}@keyframes updspin{to{transform:rotate(360deg)}}\n  .syncov p.st{white-space:normal;padding:0;background:none;border-radius:0;font-weight:400;flex:initial}\n  .syncov .meter{height:8px;border-radius:4px;background:var(--fill,#EFEFF4);overflow:hidden}.syncov .meter i{display:block;height:100%;border-radius:4px}\n  .syncov .errs{margin:0;padding-left:18px;font-size:12px;color:var(--ink2,#3A3A3C);display:flex;flex-direction:column;gap:4px;word-break:break-word}\n  .syncbtn[data-dirty]::after{content:"";position:absolute;top:10px;right:9px;width:8px;height:8px;border-radius:4px;background:var(--star,#FF9F0A)}`;
   const ICON = '<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9a4 4 0 0 1 0 9z"/><path d="M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg>';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmt = t => t ? new Date(t).toLocaleString('uk-UA', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'ще ні разу';
@@ -203,6 +233,31 @@
   function counts() {
     const n = (k, f) => (get(k, []) || []).filter(f || (() => true)).length;
     return `${n('lists.items')} у Кінотеатрі · ${n('lists.items', i => i.status === 'watched')} переглянуто`;
+  }
+  function usage() {
+    let data = 0, cache = 0, other = 0;
+    for (let i = 0; i < ls.length; i++) { const k = ls.key(i), n = (k.length + (ls.getItem(k) || '').length) * 2;
+      if (CACHE_KEYS.includes(k)) cache += n; else if (isData(k)) data += n; else other += n; }
+    return { data, cache, other, total: data + cache + other };
+  }
+  const kb = n => n > 1048576 ? (n / 1048576).toFixed(1) + ' МБ' : Math.max(1, Math.round(n / 1024)) + ' КБ';
+  function storageHTML() {
+    const u = usage(), pct = Math.min(100, Math.round(u.total / (5 * 1048576) * 100));
+    return `<div class="meter"><i style="width:${pct}%;background:${pct > 80 ? 'var(--tint,#E0261C)' : 'var(--green,#34C759)'}"></i></div>
+      <p class="st">Зайнято ${kb(u.total)} з ~5 МБ: твої дані ${kb(u.data)}, кеш постерів і описів ${kb(u.cache)}, інше ${kb(u.other)}.</p>`;
+  }
+  function errLog() { try { return JSON.parse(ls.getItem('sys.errlog') || '[]'); } catch (e) { return []; } }
+  function errHTML() {
+    const L = errLog();
+    if (!L.length) return '<p class="st">Журнал порожній ✓</p>';
+    const f = t => new Date(t).toLocaleString('uk-UA', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    return `<p class="st">Записів у журналі: ${L.length}. Останні:</p><ul class="errs">${L.slice(-4).reverse().map(e => `<li><b>${esc(f(e.t))} · ${esc(e.p)}</b> ${esc(e.m)}</li>`).join('')}</ul>
+      <button class="b" data-cperr>Скопіювати журнал для Claude</button><button class="b" data-clrerr>Очистити журнал</button>`;
+  }
+  function errReport() {
+    const u = usage();
+    return ['Журнал помилок «Тю і Шо глянемо»', 'Версія: ' + APP_VER + ' · ' + navigator.userAgent, 'Режим: ' + (standalone() ? 'застосунок з екрана' : 'браузер') + ' · пам\'ять ' + kb(u.total), '']
+      .concat(errLog().map(e => `${new Date(e.t).toISOString()} [${e.p} v${e.v}] ${e.m}${e.x ? ' @ ' + e.x : ''}`)).join('\n');
   }
   function render() {
     const c = cfg();
@@ -224,6 +279,11 @@
           <input type="password" autocomplete="off" placeholder="ghp_… або github_pat_…" data-tok>
           <button class="b go" data-on>Увімкнути</button>`}
         <p class="st" id="syncSt"></p>
+      </div>
+      <div class="bx"><h3>Пам'ять і діагностика</h3>
+        ${storageHTML()}
+        <button class="b" data-clrcache>Очистити кеш (списки лишаться)</button>
+        ${errHTML()}
       </div>
       <div class="bx"><h3>Застосунок</h3>
         <button class="b go" data-upd>Оновити застосунок до останньої версії</button>
@@ -330,6 +390,9 @@
       if (b.dataset.x !== undefined) close();
       else if (b.dataset.exp !== undefined) download();
       else if (b.dataset.upd !== undefined) updateApp();
+      else if (b.dataset.clrcache !== undefined) { CACHE_KEYS.forEach(k => ls.removeItem(k)); render(); status('Кеш очищено. Постери й описи завантажаться знову.'); }
+      else if (b.dataset.clrerr !== undefined) { ls.removeItem('sys.errlog'); render(); }
+      else if (b.dataset.cperr !== undefined) { const t = errReport(); try { await navigator.clipboard.writeText(t); status('Журнал скопійовано — встав його в чат.'); } catch (e) { prompt('Скопіюй журнал:', t); } }
       else if (b.dataset.imp !== undefined) ov.querySelector('[data-file]').click();
       else if (b.dataset.on !== undefined) {
         const t = ov.querySelector('[data-tok]').value.trim(); if (!t) return;
@@ -367,6 +430,8 @@
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && !ov.hidden) close(); });
     backupReminder();
+    setTimeout(checkVersion, 1500);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkVersion(); });
     if (!sessionStorage.getItem('sync.reloaded')) syncOnLoad(); else sessionStorage.removeItem('sync.reloaded');
     /* перед закриттям — встигнути відправити */
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && pushT && cfg().token) { clearTimeout(pushT); pushT = null; push().catch(() => {}); } });
@@ -388,6 +453,19 @@
     location.replace(url);
   }
   window.TyuUpdate = updateApp;
+  /* захист від кешу: звірити версію з сервером і, якщо є новіша, тихо оновитися (не частіше разу на 2 хв) */
+  async function checkVersion() {
+    try {
+      const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
+      const srv = Number((await r.json()).v), cur = Number(APP_VER);
+      if (!srv || !cur || srv <= cur) { sessionStorage.removeItem('ver.tried'); return; }
+      const tried = Number(sessionStorage.getItem('ver.tried') || 0);
+      if (Date.now() - tried < 120000) { markNewVersion(); return; }   // уже пробували — не зациклюватись
+      sessionStorage.setItem('ver.tried', String(Date.now()));
+      logErr('Автооновлення: версія ' + cur + ' → ' + srv);
+      updateApp();
+    } catch (e) {}
+  }
   function markNewVersion() { const u = document.getElementById('updBtn'); if (u) { u.setAttribute('data-dirty', ''); u.setAttribute('aria-label', 'Доступна нова версія — оновити застосунок'); } }
 
   /* ---- PWA ---- */
